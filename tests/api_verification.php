@@ -248,7 +248,23 @@ assertTest("Snapshot price matches base price", (float) $data11['data']['snapsho
 // -----------------------------------------------------------------------------
 echo "\nTest 12: Doctor Creates Prescription\n";
 $medList = json_decode((string) $masterController->getMedicines()->getBody(), true)['data'];
-$medAmlodipine = $medList[4]; // Amlodipine 10mg
+$medAmlodipine = null;
+foreach ($medList as $m) {
+    if ($m['code'] === 'MED-AML-10') {
+        $medAmlodipine = $m;
+        break;
+    }
+}
+if (!$medAmlodipine) {
+    $medAmlodipine = $medList[0];
+}
+
+// Pastikan stok obat cukup untuk pengujian berulang
+\App\Common\Database::execute("
+    UPDATE medicine_stocks 
+    SET current_stock = 500 
+    WHERE medicine_id = :id
+", [':id' => $medAmlodipine['id']]);
 
 $req12 = (new ServerRequest(method: 'POST', uri: '/api/v1/prescriptions'))
     ->withHeader('Authorization', 'Bearer ' . $jwtToken)
