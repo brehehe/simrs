@@ -327,14 +327,6 @@ export const DoctorExaminationPage: React.FC = () => {
                   <FileText className="w-3.5 h-3.5 text-teal-300" />
                   Resume Medis
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setIsSatuSehatModalOpen(true)}
-                  className="px-2.5 py-2 rounded-xl text-xs font-semibold bg-teal-600/70 hover:bg-teal-600 text-teal-100 border border-teal-400/40 transition-colors flex items-center gap-1.5 shadow-sm"
-                >
-                  <ShieldAlert className="w-3.5 h-3.5 text-amber-300" />
-                  SATUSEHAT FHIR
-                </button>
               </div>
             )}
 

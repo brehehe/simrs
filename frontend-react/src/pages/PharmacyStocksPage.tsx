@@ -9,9 +9,14 @@ import {
   Package,
   Layers,
   ArrowDownRight,
+  Plus,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
+import { AlertDialog } from '../components/ui/AlertDialog';
 import api from '../services/api';
 import { toast } from 'sonner';
 
@@ -31,6 +36,28 @@ export const PharmacyStocksPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [stockFilter, setStockFilter] = useState<string>('ALL');
+
+  // Modal States
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [formLoading, setFormLoading] = useState<boolean>(false);
+
+  // Form Fields
+  const [formData, setFormData] = useState({
+    code: '',
+    name: '',
+    generic_name: '',
+    unit: 'Tablet',
+    base_price: 5000,
+    current_stock: 100,
+    minimum_stock: 20,
+  });
+
+  // Delete Alert
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   const fetchMedicines = async () => {
     setLoading(true);
@@ -55,6 +82,96 @@ export const PharmacyStocksPage: React.FC = () => {
       currency: 'IDR',
       minimumFractionDigits: 0,
     }).format(num || 0);
+  };
+
+  const handleOpenCreate = () => {
+    setIsEditing(false);
+    setCurrentId(null);
+    setFormData({
+      code: '',
+      name: '',
+      generic_name: '',
+      unit: 'Tablet',
+      base_price: 5000,
+      current_stock: 100,
+      minimum_stock: 20,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (item: MedicineStockItem) => {
+    setIsEditing(true);
+    setCurrentId(item.id);
+    setFormData({
+      code: item.code,
+      name: item.name,
+      generic_name: item.generic_name || item.name,
+      unit: item.unit || 'Tablet',
+      base_price: typeof item.base_price === 'string' ? parseFloat(item.base_price) : item.base_price,
+      current_stock: Number(item.current_stock) || 0,
+      minimum_stock: Number(item.minimum_stock) || 10,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.unit.trim()) {
+      toast.error('Nama obat dan bentuk satuan wajib diisi.');
+      return;
+    }
+    if (!isEditing && !formData.code.trim()) {
+      toast.error('Kode obat wajib diisi.');
+      return;
+    }
+
+    setFormLoading(true);
+    try {
+      if (isEditing && currentId) {
+        await api.put(`/medicines/${currentId}`, {
+          name: formData.name.trim(),
+          generic_name: formData.generic_name.trim() || formData.name.trim(),
+          unit: formData.unit.trim(),
+          base_price: Number(formData.base_price),
+          current_stock: Number(formData.current_stock),
+          minimum_stock: Number(formData.minimum_stock),
+        });
+        toast.success('Data obat & persediaan berhasil diperbarui.');
+      } else {
+        await api.post('/medicines', {
+          code: formData.code.toUpperCase().trim(),
+          name: formData.name.trim(),
+          generic_name: formData.generic_name.trim() || formData.name.trim(),
+          unit: formData.unit.trim(),
+          base_price: Number(formData.base_price),
+          current_stock: Number(formData.current_stock),
+          minimum_stock: Number(formData.minimum_stock),
+        });
+        toast.success('Obat baru berhasil ditambahkan ke katalog.');
+      }
+      setIsModalOpen(false);
+      fetchMedicines();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal menyimpan data obat.');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`/medicines/${deleteId}`);
+      toast.success('Obat berhasil dinonaktifkan.');
+      setIsDeleteOpen(false);
+      setDeleteId(null);
+      fetchMedicines();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal menghapus obat.');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const filtered = medicines.filter((m) => {
@@ -98,16 +215,26 @@ export const PharmacyStocksPage: React.FC = () => {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchMedicines}
-          disabled={loading}
-          className="bg-white/10 hover:bg-white/20 text-white border-white/20 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Segarkan Stok
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchMedicines}
+            disabled={loading}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Segarkan Stok
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleOpenCreate}
+            className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold shadow-md"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Tambah Obat
+          </Button>
+        </div>
       </div>
 
       {/* Critical Case 2 Callout */}
@@ -169,7 +296,7 @@ export const PharmacyStocksPage: React.FC = () => {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Cari nama obat, generik, atau kode..."
+              placeholder="Cari nama obat, kode, atau zat aktif..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -178,26 +305,16 @@ export const PharmacyStocksPage: React.FC = () => {
 
           <div className="flex items-center space-x-2">
             <span className="text-xs font-medium text-slate-500">Status Stok:</span>
-            <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-100 text-xs font-medium">
-              {[
-                { id: 'ALL', label: 'Semua' },
-                { id: 'NORMAL', label: 'Stok Aman' },
-                { id: 'LOW', label: 'Menipis' },
-                { id: 'EMPTY', label: 'Habis' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setStockFilter(tab.id)}
-                  className={`px-3 py-1 rounded-md transition-colors ${
-                    stockFilter === tab.id
-                      ? 'bg-white text-slate-900 shadow-sm font-semibold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+            <select
+              value={stockFilter}
+              onChange={(e) => setStockFilter(e.target.value)}
+              className="text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="ALL">Semua Persediaan</option>
+              <option value="NORMAL">Stok Aman</option>
+              <option value="LOW">Stok Menipis (≤ Minimum)</option>
+              <option value="EMPTY">Stok Kosong (0)</option>
+            </select>
           </div>
         </div>
       </Card>
@@ -221,12 +338,13 @@ export const PharmacyStocksPage: React.FC = () => {
                 <th className="py-3 px-4">Stok Minimum</th>
                 <th className="py-3 px-4">Harga Satuan</th>
                 <th className="py-3 px-4">Kondisi Persediaan</th>
+                <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-400">
+                  <td colSpan={8} className="text-center py-8 text-slate-400">
                     Tidak ada obat yang cocok dengan filter pencarian.
                   </td>
                 </tr>
@@ -284,6 +402,29 @@ export const PharmacyStocksPage: React.FC = () => {
                           </span>
                         )}
                       </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors border border-slate-200"
+                            title="Edit Obat & Stok"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeleteId(item.id);
+                              setIsDeleteOpen(true);
+                            }}
+                            className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200"
+                            title="Nonaktifkan Obat"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
@@ -292,6 +433,153 @@ export const PharmacyStocksPage: React.FC = () => {
           </table>
         </div>
       </Card>
+
+      {/* Modal Create / Edit */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={isEditing ? 'Edit Data Obat & Stok' : 'Tambah Obat Baru ke Depo Farmasi'}
+        description="Kelola katalog formularium rumah sakit, satuan sediaan, harga, dan kuantitas persediaan."
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Kode Obat <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                disabled={isEditing}
+                placeholder="Contoh: MED-PARACETAMOL-500"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono ${
+                  isEditing ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white border-slate-300'
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Bentuk Sediaan / Satuan <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Tablet / Kapsul / Botol Sirup"
+                value={formData.unit}
+                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Nama Obat Merk / Dagang <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="Contoh: Paracetamol 500 mg"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Nama Generik / Zat Aktif
+            </label>
+            <input
+              type="text"
+              placeholder="Contoh: Acetaminophen"
+              value={formData.generic_name}
+              onChange={(e) => setFormData({ ...formData, generic_name: e.target.value })}
+              className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Harga Satuan (Rp) <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                required
+                value={formData.base_price}
+                onChange={(e) => setFormData({ ...formData, base_price: Number(e.target.value) })}
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Stok Saat Ini <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                required
+                value={formData.current_stock}
+                onChange={(e) => setFormData({ ...formData, current_stock: Number(e.target.value) })}
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Batas Minimum <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={1}
+                required
+                value={formData.minimum_stock}
+                onChange={(e) => setFormData({ ...formData, minimum_stock: Number(e.target.value) })}
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(false)}
+              disabled={formLoading}
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={formLoading}
+              className="bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              {isEditing ? 'Simpan Perubahan' : 'Tambahkan Obat'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation Alert */}
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        isLoading={deleteLoading}
+        title="Nonaktifkan Obat?"
+        description="Obat ini akan dinonaktifkan dari katalog resep poliklinik. Riwayat resep dan mutasi stok terdahulu tetap terjaga."
+        confirmText="Ya, Nonaktifkan"
+        cancelText="Batal"
+        variant="danger"
+      />
     </div>
   );
 };

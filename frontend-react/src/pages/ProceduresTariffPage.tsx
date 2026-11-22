@@ -6,10 +6,14 @@ import {
   RefreshCw,
   Coins,
   ShieldCheck,
-  FileSpreadsheet,
+  Plus,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
+import { AlertDialog } from '../components/ui/AlertDialog';
 import api from '../services/api';
 import { toast } from 'sonner';
 
@@ -25,6 +29,24 @@ export const ProceduresTariffPage: React.FC = () => {
   const [procedures, setProcedures] = useState<MedicalProcedure[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Modal States
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [formLoading, setFormLoading] = useState<boolean>(false);
+
+  // Form Fields
+  const [formData, setFormData] = useState({
+    code: '',
+    name: '',
+    base_price: 50000,
+  });
+
+  // Delete Alert
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   const fetchProcedures = async () => {
     setLoading(true);
@@ -51,6 +73,76 @@ export const ProceduresTariffPage: React.FC = () => {
     }).format(num || 0);
   };
 
+  const handleOpenCreate = () => {
+    setIsEditing(false);
+    setCurrentId(null);
+    setFormData({ code: '', name: '', base_price: 50000 });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (proc: MedicalProcedure) => {
+    setIsEditing(true);
+    setCurrentId(proc.id);
+    setFormData({
+      code: proc.code,
+      name: proc.name,
+      base_price: typeof proc.base_price === 'string' ? parseFloat(proc.base_price) : proc.base_price,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || formData.base_price < 0) {
+      toast.error('Nama tindakan dan tarif dasar wajib diisi dengan benar.');
+      return;
+    }
+    if (!isEditing && !formData.code.trim()) {
+      toast.error('Kode tindakan wajib diisi.');
+      return;
+    }
+
+    setFormLoading(true);
+    try {
+      if (isEditing && currentId) {
+        await api.put(`/medical-procedures/${currentId}`, {
+          name: formData.name.trim(),
+          base_price: Number(formData.base_price),
+        });
+        toast.success('Tarif tindakan medis berhasil diperbarui.');
+      } else {
+        await api.post('/medical-procedures', {
+          code: formData.code.toUpperCase().trim(),
+          name: formData.name.trim(),
+          base_price: Number(formData.base_price),
+        });
+        toast.success('Tindakan medis baru berhasil ditambahkan.');
+      }
+      setIsModalOpen(false);
+      fetchProcedures();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal menyimpan data tindakan.');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`/medical-procedures/${deleteId}`);
+      toast.success('Tindakan medis berhasil dinonaktifkan.');
+      setIsDeleteOpen(false);
+      setDeleteId(null);
+      fetchProcedures();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal menghapus tindakan.');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const filtered = procedures.filter((p) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -75,16 +167,26 @@ export const ProceduresTariffPage: React.FC = () => {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchProcedures}
-          disabled={loading}
-          className="bg-white/10 hover:bg-white/20 text-white border-white/20 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Segarkan Data
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchProcedures}
+            disabled={loading}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Segarkan
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleOpenCreate}
+            className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold shadow-md"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Tambah Tindakan
+          </Button>
+        </div>
       </div>
 
       {/* Critical Case 4 Info Callout */}
@@ -130,12 +232,13 @@ export const ProceduresTariffPage: React.FC = () => {
                 <th className="py-3 px-4">Nama Tindakan Medis</th>
                 <th className="py-3 px-4">Tarif Dasar (Standar RS)</th>
                 <th className="py-3 px-4">Status Layanan</th>
+                <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-8 text-slate-400">
+                  <td colSpan={5} className="text-center py-8 text-slate-400">
                     Tidak ada tindakan medis yang cocok dengan filter pencarian.
                   </td>
                 </tr>
@@ -157,6 +260,29 @@ export const ProceduresTariffPage: React.FC = () => {
                         Aktif
                       </span>
                     </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(proc)}
+                          className="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors border border-slate-200"
+                          title="Edit Tarif"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteId(proc.id);
+                            setIsDeleteOpen(true);
+                          }}
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200"
+                          title="Nonaktifkan Tindakan"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -164,6 +290,96 @@ export const ProceduresTariffPage: React.FC = () => {
           </table>
         </div>
       </Card>
+
+      {/* Modal Create / Edit */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={isEditing ? 'Edit Tindakan & Tarif' : 'Tambah Tindakan Medis Baru'}
+        description="Pengaturan tarif dasar tindakan dokter dan perawat poliklinik rawat jalan."
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Kode Tindakan <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              disabled={isEditing}
+              placeholder="Contoh: PROC-EKG"
+              value={formData.code}
+              onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+              className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono ${
+                isEditing ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white border-slate-300'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Nama Tindakan Medis <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="Contoh: Pemeriksaan Elektrokardiografi (EKG 12-Lead)"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Tarif Dasar (Rupiah) <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={1000}
+              required
+              placeholder="Contoh: 125000"
+              value={formData.base_price}
+              onChange={(e) => setFormData({ ...formData, base_price: Number(e.target.value) })}
+              className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(false)}
+              disabled={formLoading}
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={formLoading}
+              className="bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              {isEditing ? 'Simpan Perubahan' : 'Tambahkan Tindakan'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation Alert */}
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        isLoading={deleteLoading}
+        title="Nonaktifkan Tindakan Medis?"
+        description="Tindakan ini tidak akan muncul pada pilihan tindakan dokter baru. Catatan invoice historis tetap utuh."
+        confirmText="Ya, Nonaktifkan"
+        cancelText="Batal"
+        variant="danger"
+      />
     </div>
   );
 };

@@ -10,9 +10,14 @@ import {
   RefreshCw,
   CheckCircle2,
   Calendar,
+  Plus,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
+import { AlertDialog } from '../components/ui/AlertDialog';
 import api from '../services/api';
 import { toast } from 'sonner';
 
@@ -35,6 +40,13 @@ interface Polyclinic {
   queue_prefix: string;
 }
 
+interface MedicalStaff {
+  id: string;
+  full_name: string;
+  staff_type: string;
+  polyclinic_id: string;
+}
+
 const DAYS_MAP: Record<number, string> = {
   1: 'Senin',
   2: 'Selasa',
@@ -48,20 +60,44 @@ const DAYS_MAP: Record<number, string> = {
 export const DoctorSchedulesPage: React.FC = () => {
   const [schedules, setSchedules] = useState<DoctorSchedule[]>([]);
   const [polyclinics, setPolyclinics] = useState<Polyclinic[]>([]);
+  const [doctors, setDoctors] = useState<MedicalStaff[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedPoly, setSelectedPoly] = useState<string>('ALL');
   const [selectedDay, setSelectedDay] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Modal States
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [formLoading, setFormLoading] = useState<boolean>(false);
+
+  // Form Fields
+  const [formData, setFormData] = useState({
+    doctor_id: '',
+    polyclinic_id: '',
+    day_of_week: 1,
+    start_time: '08:00',
+    end_time: '12:00',
+    quota: 30,
+  });
+
+  // Delete Alert
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resSched, resPoly] = await Promise.all([
+      const [resSched, resPoly, resStaff] = await Promise.all([
         api.get('/doctor-schedules'),
         api.get('/polyclinics'),
+        api.get('/medical-staff'),
       ]);
       setSchedules(resSched.data?.data || []);
       setPolyclinics(resPoly.data?.data || []);
+      setDoctors((resStaff.data?.data || []).filter((s: MedicalStaff) => s.staff_type === 'DOCTOR'));
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Gagal memuat data jadwal dokter.');
     } finally {
@@ -72,6 +108,75 @@ export const DoctorSchedulesPage: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleOpenCreate = () => {
+    setIsEditing(false);
+    setCurrentId(null);
+    setFormData({
+      doctor_id: doctors[0]?.id || '',
+      polyclinic_id: polyclinics[0]?.id || '',
+      day_of_week: 1,
+      start_time: '08:00',
+      end_time: '12:00',
+      quota: 30,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (s: DoctorSchedule) => {
+    setIsEditing(true);
+    setCurrentId(s.id);
+    setFormData({
+      doctor_id: s.doctor_id,
+      polyclinic_id: s.polyclinic_id,
+      day_of_week: Number(s.day_of_week),
+      start_time: s.start_time?.slice(0, 5) || '08:00',
+      end_time: s.end_time?.slice(0, 5) || '12:00',
+      quota: Number(s.quota) || 30,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.doctor_id || !formData.polyclinic_id || !formData.start_time || !formData.end_time) {
+      toast.error('Seluruh kolom formulir jadwal dokter wajib diisi.');
+      return;
+    }
+
+    setFormLoading(true);
+    try {
+      if (isEditing && currentId) {
+        await api.put(`/doctor-schedules/${currentId}`, formData);
+        toast.success('Jadwal dokter berhasil diperbarui.');
+      } else {
+        await api.post('/doctor-schedules', formData);
+        toast.success('Jadwal dokter baru berhasil ditambahkan.');
+      }
+      setIsModalOpen(false);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal menyimpan jadwal dokter.');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`/doctor-schedules/${deleteId}`);
+      toast.success('Jadwal dokter berhasil dihapus.');
+      setIsDeleteOpen(false);
+      setDeleteId(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal menghapus jadwal dokter.');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const filteredSchedules = schedules.filter((s) => {
     if (selectedPoly !== 'ALL' && s.polyclinic_id !== selectedPoly) return false;
@@ -104,16 +209,26 @@ export const DoctorSchedulesPage: React.FC = () => {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchData}
-          disabled={loading}
-          className="bg-white/10 hover:bg-white/20 text-white border-white/20 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Segarkan Data
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchData}
+            disabled={loading}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Segarkan
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleOpenCreate}
+            className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold shadow-md"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Tambah Jadwal
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -122,7 +237,7 @@ export const DoctorSchedulesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase">Total Sesi Praktik</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-1">{schedules.length}</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mt-1">{schedules.length} Sesi</h3>
             </div>
             <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
               <Calendar className="w-5 h-5" />
@@ -134,7 +249,7 @@ export const DoctorSchedulesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase">Poliklinik Aktif</p>
-              <h3 className="text-2xl font-bold text-indigo-600 mt-1">{polyclinics.length}</h3>
+              <h3 className="text-2xl font-bold text-indigo-600 mt-1">{polyclinics.length} Unit</h3>
             </div>
             <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <Building2 className="w-5 h-5" />
@@ -147,7 +262,7 @@ export const DoctorSchedulesPage: React.FC = () => {
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase">Kapasitas Pelayanan</p>
               <h3 className="text-2xl font-bold text-emerald-600 mt-1">
-                {schedules.reduce((acc, curr) => acc + (curr.quota || 0), 0)} Pasien
+                {schedules.reduce((acc, curr) => acc + (Number(curr.quota) || 0), 0)} Pasien / Hari
               </h3>
             </div>
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -219,12 +334,13 @@ export const DoctorSchedulesPage: React.FC = () => {
                 <th className="py-3 px-4">Jam Layanan</th>
                 <th className="py-3 px-4">Kuota Pasien</th>
                 <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredSchedules.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-slate-400">
+                  <td colSpan={7} className="text-center py-8 text-slate-400">
                     Tidak ada jadwal praktik dokter yang cocok dengan filter pencarian.
                   </td>
                 </tr>
@@ -258,6 +374,29 @@ export const DoctorSchedulesPage: React.FC = () => {
                         Aktif
                       </span>
                     </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(s)}
+                          className="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors border border-slate-200"
+                          title="Edit Jadwal"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteId(s.id);
+                            setIsDeleteOpen(true);
+                          }}
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200"
+                          title="Hapus Jadwal"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -265,6 +404,150 @@ export const DoctorSchedulesPage: React.FC = () => {
           </table>
         </div>
       </Card>
+
+      {/* Modal Create / Edit */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={isEditing ? 'Edit Jadwal Praktik Dokter' : 'Tambah Jadwal Praktik Baru'}
+        description="Atur penugasan dokter spesialis, poliklinik, jam pelayanan, dan kuota harian."
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Dokter Spesialis <span className="text-rose-500">*</span>
+            </label>
+            <select
+              required
+              value={formData.doctor_id}
+              onChange={(e) => setFormData({ ...formData, doctor_id: e.target.value })}
+              className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="">Pilih Dokter Spesialis</option>
+              {doctors.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.full_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Unit Poliklinik <span className="text-rose-500">*</span>
+            </label>
+            <select
+              required
+              value={formData.polyclinic_id}
+              onChange={(e) => setFormData({ ...formData, polyclinic_id: e.target.value })}
+              className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="">Pilih Unit Poliklinik</option>
+              {polyclinics.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({p.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Hari Pelayanan <span className="text-rose-500">*</span>
+              </label>
+              <select
+                required
+                value={formData.day_of_week}
+                onChange={(e) => setFormData({ ...formData, day_of_week: Number(e.target.value) })}
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                {Object.entries(DAYS_MAP).map(([val, label]) => (
+                  <option key={val} value={val}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Kuota Pasien / Hari <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={200}
+                required
+                value={formData.quota}
+                onChange={(e) => setFormData({ ...formData, quota: Number(e.target.value) })}
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Jam Mulai Praktik <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="time"
+                required
+                value={formData.start_time}
+                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Jam Selesai Praktik <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="time"
+                required
+                value={formData.end_time}
+                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(false)}
+              disabled={formLoading}
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={formLoading}
+              className="bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              {isEditing ? 'Simpan Perubahan' : 'Tambahkan Jadwal'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation Alert */}
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        isLoading={deleteLoading}
+        title="Hapus Jadwal Praktik Dokter?"
+        description="Jadwal praktik ini akan dihapus permanen dari sistem kalender pendaftaran poliklinik."
+        confirmText="Ya, Hapus Jadwal"
+        cancelText="Batal"
+        variant="danger"
+      />
     </div>
   );
 };

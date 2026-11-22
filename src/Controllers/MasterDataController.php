@@ -162,4 +162,247 @@ class MasterDataController
             return ResponseHelper::error($e->getMessage(), 500);
         }
     }
+
+    private function getJsonBody(ServerRequestInterface $request): array
+    {
+        $body = $request->getParsedBody();
+        if (empty($body) || !is_array($body)) {
+            $raw = (string) $request->getBody();
+            $body = json_decode($raw, true) ?: [];
+        }
+        return $body;
+    }
+
+    private function getRouteId(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): string
+    {
+        return (string) ($currentRoute?->getArgument('id') ?? $request->getAttribute('id') ?? '');
+    }
+
+    // --- Polyclinic CRUD ---
+    public function createPolyclinic(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            $body = $this->getJsonBody($request);
+            $item = $this->service->createPolyclinic($body);
+            return ResponseHelper::success($item, "Poliklinik berhasil ditambahkan.", 201);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "CREATE_POLYCLINIC_ERROR");
+        }
+    }
+
+    public function updatePolyclinic(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $body = $this->getJsonBody($request);
+            $item = $this->service->updatePolyclinic($id, $body);
+            return ResponseHelper::success($item, "Poliklinik berhasil diperbarui.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "UPDATE_POLYCLINIC_ERROR");
+        }
+    }
+
+    public function deletePolyclinic(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $this->service->deletePolyclinic($id);
+            return ResponseHelper::success(null, "Poliklinik berhasil dinonaktifkan.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "DELETE_POLYCLINIC_ERROR");
+        }
+    }
+
+    // --- Medical Staff CRUD ---
+    public function createMedicalStaff(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            $body = $this->getJsonBody($request);
+            $item = $this->service->createMedicalStaff($body);
+            return ResponseHelper::success($item, "Tenaga medis berhasil ditambahkan.", 201);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "CREATE_STAFF_ERROR");
+        }
+    }
+
+    public function updateMedicalStaff(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $body = $this->getJsonBody($request);
+            $item = $this->service->updateMedicalStaff($id, $body);
+            return ResponseHelper::success($item, "Tenaga medis berhasil diperbarui.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "UPDATE_STAFF_ERROR");
+        }
+    }
+
+    public function deleteMedicalStaff(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $this->service->deleteMedicalStaff($id);
+            return ResponseHelper::success(null, "Tenaga medis berhasil dinonaktifkan.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "DELETE_STAFF_ERROR");
+        }
+    }
+
+    // --- Doctor Schedules CRUD ---
+    public function createDoctorSchedule(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            $body = $this->getJsonBody($request);
+            $item = $this->service->createDoctorSchedule($body);
+            return ResponseHelper::success($item, "Jadwal dokter berhasil ditambahkan.", 201);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "CREATE_SCHEDULE_ERROR");
+        }
+    }
+
+    public function updateDoctorSchedule(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $body = $this->getJsonBody($request);
+            $item = $this->service->updateDoctorSchedule($id, $body);
+            return ResponseHelper::success($item, "Jadwal dokter berhasil diperbarui.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "UPDATE_SCHEDULE_ERROR");
+        }
+    }
+
+    public function deleteDoctorSchedule(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $this->service->deleteDoctorSchedule($id);
+            return ResponseHelper::success(null, "Jadwal dokter berhasil dihapus.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "DELETE_SCHEDULE_ERROR");
+        }
+    }
+
+    // --- Procedures CRUD ---
+    public function createProcedure(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            $body = $this->getJsonBody($request);
+            $item = $this->service->createProcedure($body);
+            return ResponseHelper::success($item, "Tindakan medis berhasil ditambahkan.", 201);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "CREATE_PROCEDURE_ERROR");
+        }
+    }
+
+    public function updateProcedure(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $body = $this->getJsonBody($request);
+            $item = $this->service->updateProcedure($id, $body);
+            return ResponseHelper::success($item, "Tindakan medis berhasil diperbarui.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "UPDATE_PROCEDURE_ERROR");
+        }
+    }
+
+    public function deleteProcedure(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $this->service->deleteProcedure($id);
+            return ResponseHelper::success(null, "Tindakan medis berhasil dinonaktifkan.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "DELETE_PROCEDURE_ERROR");
+        }
+    }
+
+    // --- Medicines CRUD ---
+    public function createMedicine(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            $body = $this->getJsonBody($request);
+            $item = $this->service->createMedicine($body);
+            return ResponseHelper::success($item, "Obat berhasil ditambahkan ke katalog.", 201);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "CREATE_MEDICINE_ERROR");
+        }
+    }
+
+    public function updateMedicine(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $body = $this->getJsonBody($request);
+            $item = $this->service->updateMedicine($id, $body);
+            return ResponseHelper::success($item, "Data obat & stok berhasil diperbarui.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "UPDATE_MEDICINE_ERROR");
+        }
+    }
+
+    public function deleteMedicine(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $this->service->deleteMedicine($id);
+            return ResponseHelper::success(null, "Obat berhasil dinonaktifkan.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "DELETE_MEDICINE_ERROR");
+        }
+    }
+
+    // --- Users CRUD ---
+    public function createUser(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            $body = $this->getJsonBody($request);
+            $item = $this->service->createUser($body);
+            return ResponseHelper::success($item, "Pengguna sistem berhasil ditambahkan.", 201);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "CREATE_USER_ERROR");
+        }
+    }
+
+    public function updateUser(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $body = $this->getJsonBody($request);
+            $item = $this->service->updateUser($id, $body);
+            return ResponseHelper::success($item, "Data pengguna berhasil diperbarui.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "UPDATE_USER_ERROR");
+        }
+    }
+
+    public function deleteUser(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        try {
+            $id = $this->getRouteId($request, $currentRoute);
+            $this->service->deleteUser($id);
+            return ResponseHelper::success(null, "Pengguna berhasil dinonaktifkan.", 200);
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+            return ResponseHelper::error($e->getMessage(), $code, [], "DELETE_USER_ERROR");
+        }
+    }
 }

@@ -52,30 +52,98 @@ return [
             Route::get('/api/v1/patients/{id}')
                 ->action([MasterDataController::class, 'getPatientById'])
                 ->name('api.patients.detail'),
+
+            // Polyclinics CRUD
             Route::get('/api/v1/polyclinics')
                 ->action([MasterDataController::class, 'getPolyclinics'])
                 ->name('api.polyclinics.list'),
+            Route::post('/api/v1/polyclinics')
+                ->action([MasterDataController::class, 'createPolyclinic'])
+                ->name('api.polyclinics.create'),
+            Route::put('/api/v1/polyclinics/{id}')
+                ->action([MasterDataController::class, 'updatePolyclinic'])
+                ->name('api.polyclinics.update'),
+            Route::delete('/api/v1/polyclinics/{id}')
+                ->action([MasterDataController::class, 'deletePolyclinic'])
+                ->name('api.polyclinics.delete'),
+
+            // Medical Staff CRUD
             Route::get('/api/v1/medical-staff')
                 ->action([MasterDataController::class, 'getMedicalStaff'])
                 ->name('api.medical_staff.list'),
+            Route::post('/api/v1/medical-staff')
+                ->action([MasterDataController::class, 'createMedicalStaff'])
+                ->name('api.medical_staff.create'),
+            Route::put('/api/v1/medical-staff/{id}')
+                ->action([MasterDataController::class, 'updateMedicalStaff'])
+                ->name('api.medical_staff.update'),
+            Route::delete('/api/v1/medical-staff/{id}')
+                ->action([MasterDataController::class, 'deleteMedicalStaff'])
+                ->name('api.medical_staff.delete'),
+
+            // Doctor Schedules CRUD
             Route::get('/api/v1/doctor-schedules')
                 ->action([MasterDataController::class, 'getDoctorSchedules'])
                 ->name('api.doctor_schedules.list'),
+            Route::post('/api/v1/doctor-schedules')
+                ->action([MasterDataController::class, 'createDoctorSchedule'])
+                ->name('api.doctor_schedules.create'),
+            Route::put('/api/v1/doctor-schedules/{id}')
+                ->action([MasterDataController::class, 'updateDoctorSchedule'])
+                ->name('api.doctor_schedules.update'),
+            Route::delete('/api/v1/doctor-schedules/{id}')
+                ->action([MasterDataController::class, 'deleteDoctorSchedule'])
+                ->name('api.doctor_schedules.delete'),
+
+            // Medical Procedures CRUD
             Route::get('/api/v1/medical-procedures')
                 ->action([MasterDataController::class, 'getProcedures'])
                 ->name('api.procedures.list'),
+            Route::post('/api/v1/medical-procedures')
+                ->action([MasterDataController::class, 'createProcedure'])
+                ->name('api.procedures.create'),
+            Route::put('/api/v1/medical-procedures/{id}')
+                ->action([MasterDataController::class, 'updateProcedure'])
+                ->name('api.procedures.update'),
+            Route::delete('/api/v1/medical-procedures/{id}')
+                ->action([MasterDataController::class, 'deleteProcedure'])
+                ->name('api.procedures.delete'),
+
+            // Medicines & Stocks CRUD
             Route::get('/api/v1/medicines')
                 ->action([MasterDataController::class, 'getMedicines'])
                 ->name('api.medicines.list'),
+            Route::post('/api/v1/medicines')
+                ->action([MasterDataController::class, 'createMedicine'])
+                ->name('api.medicines.create'),
+            Route::put('/api/v1/medicines/{id}')
+                ->action([MasterDataController::class, 'updateMedicine'])
+                ->name('api.medicines.update'),
+            Route::delete('/api/v1/medicines/{id}')
+                ->action([MasterDataController::class, 'deleteMedicine'])
+                ->name('api.medicines.delete'),
+
+            // Lab Tests & Diagnoses
             Route::get('/api/v1/lab-tests')
                 ->action([MasterDataController::class, 'getLabTests'])
                 ->name('api.lab_tests.list'),
             Route::get('/api/v1/diagnoses')
                 ->action([MasterDataController::class, 'getDiagnoses'])
                 ->name('api.diagnoses.list'),
+
+            // Users Management CRUD
             Route::get('/api/v1/users')
                 ->action([MasterDataController::class, 'getUsers'])
                 ->name('api.users.list'),
+            Route::post('/api/v1/users')
+                ->action([MasterDataController::class, 'createUser'])
+                ->name('api.users.create'),
+            Route::put('/api/v1/users/{id}')
+                ->action([MasterDataController::class, 'updateUser'])
+                ->name('api.users.update'),
+            Route::delete('/api/v1/users/{id}')
+                ->action([MasterDataController::class, 'deleteUser'])
+                ->name('api.users.delete'),
 
             // 3. Visits & Queue Management Endpoints
             Route::post('/api/v1/visits')

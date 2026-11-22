@@ -126,8 +126,8 @@ export const router = createBrowserRouter([
           // 7. Clinical & Financial Reports (Kemenkes RL 5.3)
           { path: '/reports', element: <ReportsPage /> },
 
-          // 8. SATUSEHAT Kemenkes RI Hub & Monitoring
-          { path: '/satusehat', element: <SatuSehatPage /> },
+          // 8. SATUSEHAT Kemenkes RI Hub & Monitoring (Hidden temporarily per user request)
+          { path: '/satusehat', element: <Navigate to="/dashboard" replace /> },
 
           // 9. Master Data & Staff Management
           { path: '/staff', element: <MedicalStaffPage /> },
@@ -136,7 +136,7 @@ export const router = createBrowserRouter([
           { path: '/procedures', element: <ProceduresTariffPage /> },
           { path: '/medicines', element: <PharmacyStocksPage /> },
           { path: '/users', element: <UsersManagementPage /> },
-          { path: '/audit-logs', element: <AuditTrailPage /> },
+          // { path: '/audit-logs', element: <AuditTrailPage /> },
 
           {
             path: '/forbidden',
