@@ -9,11 +9,15 @@ import {
   ShieldCheck,
   FileText,
   Calendar,
+  FileSpreadsheet,
+  Download,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import api from '../services/api';
 import { toast } from 'sonner';
+import { exportToExcel } from '../utils/excelExport';
+import { exportTableToPdf } from '../utils/pdfExport';
 
 interface PrescriptionItem {
   id: string;
@@ -38,6 +42,8 @@ interface Prescription {
   patient_name: string;
   mr_number: string;
   visit_number: string;
+  total_amount?: string | number;
+  dispensed_at?: string;
   items: PrescriptionItem[];
 }
 
@@ -83,6 +89,70 @@ export const PharmacyDispensationsPage: React.FC = () => {
     );
   });
 
+  const handleExportExcel = () => {
+    const data = filtered.map((rx, idx) => {
+      const totalAmount =
+        rx.total_amount !== undefined
+          ? Number(rx.total_amount)
+          : (rx.items || []).reduce((acc, curr) => acc + (Number(curr.subtotal) || 0), 0);
+
+      return {
+        no: idx + 1,
+        prescription_no: rx.prescription_number,
+        patient_name: rx.patient_name,
+        mr_number: rx.mr_number,
+        doctor: rx.doctor_name,
+        items: (rx.items || []).map((i) => `${i.medicine_name} (${i.quantity} ${i.unit})`).join('; '),
+        total_price: totalAmount,
+        dispensed_at: rx.dispensed_at || rx.created_at,
+      };
+    });
+
+    exportToExcel(
+      data,
+      `Riwayat_Penyerahan_Obat_${new Date().toISOString().split('T')[0]}`,
+      'Penyerahan Obat',
+      [
+        { header: 'No', key: 'no', width: 6 },
+        { header: 'No. Resep', key: 'prescription_no', width: 20 },
+        { header: 'Nama Pasien', key: 'patient_name', width: 24 },
+        { header: 'No. RM', key: 'mr_number', width: 16 },
+        { header: 'Dokter Penulis Resep', key: 'doctor', width: 24 },
+        { header: 'Daftar Obat Diserahkan', key: 'items', width: 35 },
+        { header: 'Total Nilai (Rp)', key: 'total_price', width: 18 },
+        { header: 'Waktu Penyerahan', key: 'dispensed_at', width: 20 },
+      ]
+    );
+    toast.success('Berkas Excel Penyerahan Obat berhasil diunduh.');
+  };
+
+  const handleExportPdf = () => {
+    const columns = ['No. Resep', 'Pasien & No. RM', 'Dokter Penulis', 'Obat Diserahkan', 'Total Nilai'];
+    const rows = filtered.map((rx) => {
+      const totalAmount =
+        rx.total_amount !== undefined
+          ? Number(rx.total_amount)
+          : (rx.items || []).reduce((acc, curr) => acc + (Number(curr.subtotal) || 0), 0);
+
+      return [
+        rx.prescription_number,
+        `${rx.patient_name}\n(${rx.mr_number})`,
+        rx.doctor_name,
+        (rx.items || []).map((i) => `• ${i.medicine_name} (${i.quantity} ${i.unit})`).join('\n'),
+        `Rp ${totalAmount.toLocaleString('id-ID')}`,
+      ];
+    });
+
+    exportTableToPdf(
+      'LOG PENYERAHAN RESEP OBAT (DISPENSATION)',
+      columns,
+      rows,
+      `Penyerahan_Obat_${new Date().toISOString().split('T')[0]}`,
+      `Total ${filtered.length} Resep Terlayani dan Diserahkan ke Pasien`
+    );
+    toast.success('Berkas PDF Penyerahan Obat berhasil diunduh.');
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
@@ -101,16 +171,36 @@ export const PharmacyDispensationsPage: React.FC = () => {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchDispensations}
-          disabled={loading}
-          className="bg-white/10 hover:bg-white/20 text-white border-white/20 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Segarkan Data
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <FileSpreadsheet className="w-4 h-4 mr-1.5 text-emerald-300" />
+            Excel
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPdf}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <Download className="w-4 h-4 mr-1.5 text-rose-300" />
+            PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchDispensations}
+            disabled={loading}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Segarkan
+          </Button>
+        </div>
       </div>
 
       {/* Search */}

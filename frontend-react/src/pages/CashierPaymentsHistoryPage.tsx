@@ -10,11 +10,15 @@ import {
   ShieldCheck,
   Receipt,
   FileCheck,
+  FileSpreadsheet,
+  Download,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import api from '../services/api';
 import { toast } from 'sonner';
+import { exportToExcel } from '../utils/excelExport';
+import { exportTableToPdf, exportReceiptToPdf } from '../utils/pdfExport';
 
 interface PaymentItem {
   id: string;
@@ -83,9 +87,70 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
     try {
       const res = await api.get(`/payments/${paymentId}/receipt`);
       setActiveReceipt(res.data?.data);
-    } catch (err: any) {
+    } catch {
       toast.error('Gagal mengambil kuitansi pembayaran.');
     }
+  };
+
+  const handleExportExcel = () => {
+    const data = filtered.map((p, idx) => ({
+      no: idx + 1,
+      payment_number: p.payment_number,
+      invoice_number: p.invoice_number,
+      patient_name: p.patient_name,
+      mr_number: p.mr_number,
+      amount_paid: Number(p.amount_paid) || 0,
+      payment_method: p.payment_method,
+      paid_at: p.paid_at,
+      cashier_name: p.cashier_name,
+    }));
+
+    exportToExcel(
+      data,
+      `Rekap_Pembayaran_Kasir_${new Date().toISOString().split('T')[0]}`,
+      'Pembayaran Kasir',
+      [
+        { header: 'No', key: 'no', width: 6 },
+        { header: 'No. Pembayaran', key: 'payment_number', width: 22 },
+        { header: 'No. Tagihan (Invoice)', key: 'invoice_number', width: 22 },
+        { header: 'Nama Pasien', key: 'patient_name', width: 26 },
+        { header: 'No. RM', key: 'mr_number', width: 16 },
+        { header: 'Nominal Dibayar (Rp)', key: 'amount_paid', width: 20 },
+        { header: 'Metode Pembayaran', key: 'payment_method', width: 18 },
+        { header: 'Waktu Transaksi', key: 'paid_at', width: 20 },
+        { header: 'Petugas Kasir', key: 'cashier_name', width: 20 },
+      ]
+    );
+    toast.success('Berkas Excel Rekapitulasi Kasir berhasil diunduh.');
+  };
+
+  const handleExportPdf = () => {
+    const columns = [
+      'No. Pembayaran',
+      'No. Invoice',
+      'Pasien & No. RM',
+      'Nominal Dibayar',
+      'Metode',
+      'Waktu & Kasir',
+    ];
+
+    const rows = filtered.map((p) => [
+      p.payment_number,
+      p.invoice_number,
+      `${p.patient_name}\n(${p.mr_number})`,
+      formatRupiah(p.amount_paid),
+      p.payment_method,
+      `${new Date(p.paid_at).toLocaleDateString('id-ID')}\n${p.cashier_name}`,
+    ]);
+
+    exportTableToPdf(
+      'LEMBAR REKAPITULASI TRANSAKSI KASIR RAWAT JALAN',
+      columns,
+      rows,
+      `Rekap_Kasir_${new Date().toISOString().split('T')[0]}`,
+      `Total ${filtered.length} Transaksi Pembayaran Resmi Terverifikasi`
+    );
+    toast.success('Berkas PDF Rekapitulasi Kasir berhasil diunduh.');
   };
 
   return (
@@ -106,16 +171,36 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchPayments}
-          disabled={loading}
-          className="bg-white/10 hover:bg-white/20 text-white border-white/20 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Segarkan Data
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <FileSpreadsheet className="w-4 h-4 mr-1.5 text-emerald-300" />
+            Excel
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPdf}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <Download className="w-4 h-4 mr-1.5 text-rose-300" />
+            PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchPayments}
+            disabled={loading}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Segarkan
+          </Button>
+        </div>
       </div>
 
       {/* Critical Case 3 Callout */}
@@ -138,7 +223,7 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Cari no. pembayaran, invoice, atau pasien..."
+              placeholder="Cari no. pembayaran, invoice, atau nama pasien..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -153,10 +238,11 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
               className="text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="ALL">Semua Metode</option>
-              <option value="CASH">Tunai (Cash)</option>
+              <option value="CASH">Tunai (CASH)</option>
               <option value="QRIS">QRIS</option>
               <option value="DEBIT_CARD">Kartu Debit</option>
               <option value="BANK_TRANSFER">Transfer Bank</option>
+              <option value="BPJS">Penjamin BPJS</option>
             </select>
           </div>
         </div>
@@ -166,7 +252,7 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900">
-            Daftar Transaksi Pembayaran ({filtered.length} Transaksi)
+            Daftar Pembayaran Kasir ({filtered.length} Transaksi)
           </h2>
         </div>
 
@@ -174,13 +260,13 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
               <tr>
-                <th className="py-3 px-4">Waktu Transaksi</th>
-                <th className="py-3 px-4">Nomor Pembayaran</th>
-                <th className="py-3 px-4">Nomor Invoice</th>
-                <th className="py-3 px-4">Identitas Pasien</th>
-                <th className="py-3 px-4">Metode Bayar</th>
+                <th className="py-3 px-4">No. Pembayaran</th>
+                <th className="py-3 px-4">No. Invoice Tagihan</th>
+                <th className="py-3 px-4">Pasien & No. RM</th>
                 <th className="py-3 px-4">Nominal Diterima</th>
-                <th className="py-3 px-4">Kasir Bertugas</th>
+                <th className="py-3 px-4">Metode Bayar</th>
+                <th className="py-3 px-4">Waktu Transaksi</th>
+                <th className="py-3 px-4">Kasir</th>
                 <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
@@ -188,15 +274,12 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-8 text-slate-400">
-                    Tidak ada transaksi pembayaran yang cocok dengan filter pencarian.
+                    Tidak ada transaksi pembayaran yang cocok dengan filter.
                   </td>
                 </tr>
               ) : (
                 filtered.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-4 font-mono text-slate-500 whitespace-nowrap">
-                      {new Date(p.paid_at).toLocaleString('id-ID')}
-                    </td>
                     <td className="py-3 px-4 font-mono font-bold text-teal-800">
                       {p.payment_number}
                     </td>
@@ -205,17 +288,20 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="font-bold text-slate-900">{p.patient_name}</div>
-                      <div className="text-[11px] text-slate-500 font-mono">RM: {p.mr_number}</div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                        {p.payment_method}
-                      </span>
+                      <div className="text-[11px] text-slate-500 font-mono">{p.mr_number}</div>
                     </td>
                     <td className="py-3 px-4 font-mono font-bold text-emerald-600 text-sm">
                       {formatRupiah(p.amount_paid)}
                     </td>
-                    <td className="py-3 px-4 text-slate-700">
+                    <td className="py-3 px-4">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
+                        {p.payment_method}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-600 font-mono">
+                      {new Date(p.paid_at).toLocaleString('id-ID')}
+                    </td>
+                    <td className="py-3 px-4 text-slate-700 font-medium">
                       {p.cashier_name}
                     </td>
                     <td className="py-3 px-4 text-right">
@@ -257,7 +343,7 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
             <div className="p-6 space-y-4 text-xs">
               <div className="text-center border-b border-slate-200 pb-3">
                 <h4 className="text-sm font-bold text-slate-900">RS INOVA MEDIKA SOLUSINDO</h4>
-                <p className="text-slate-500">Jl. Kesehatan No. 10 Jakarta • Telp (021) 555-0123</p>
+                <p className="text-slate-500">Jl. Kesehatan No. 45 Jakarta • Telp (021) 789-0123</p>
                 <div className="mt-2 font-mono font-bold text-teal-800 text-sm">
                   {activeReceipt.payment_number}
                 </div>
@@ -302,18 +388,31 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
 
               <div className="flex gap-2 pt-2">
                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    exportReceiptToPdf(activeReceipt);
+                    toast.success('Berkas PDF Kuitansi berhasil diunduh.');
+                  }}
+                  className="flex-1 border-rose-300 text-rose-700 hover:bg-rose-50"
+                >
+                  <Download className="w-4 h-4 mr-1.5 text-rose-600" />
+                  Download PDF
+                </Button>
+                <Button
                   variant="primary"
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                  size="sm"
+                  className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
                   onClick={() => {
                     window.print();
-                    setActiveReceipt(null);
                   }}
                 >
-                  <Printer className="w-4 h-4 mr-2" />
-                  Cetak Lembar Kuitansi
+                  <Printer className="w-4 h-4 mr-1.5" />
+                  Cetak Lembar
                 </Button>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => setActiveReceipt(null)}
                 >
                   Tutup

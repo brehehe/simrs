@@ -12,6 +12,8 @@ import {
   Plus,
   Edit2,
   Trash2,
+  FileSpreadsheet,
+  Download,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -19,6 +21,8 @@ import { Modal } from '../components/ui/Modal';
 import { AlertDialog } from '../components/ui/AlertDialog';
 import api from '../services/api';
 import { toast } from 'sonner';
+import { exportToExcel } from '../utils/excelExport';
+import { exportTableToPdf } from '../utils/pdfExport';
 
 interface MedicineStockItem {
   id: string;
@@ -197,6 +201,59 @@ export const PharmacyStocksPage: React.FC = () => {
   const lowStockItems = medicines.filter((m) => Number(m.current_stock) <= Number(m.minimum_stock) && Number(m.current_stock) > 0).length;
   const emptyStockItems = medicines.filter((m) => Number(m.current_stock) <= 0).length;
 
+  const handleExportExcel = () => {
+    const data = filtered.map((m, idx) => ({
+      no: idx + 1,
+      code: m.code,
+      name: m.name,
+      generic_name: m.generic_name,
+      unit: m.unit,
+      current_stock: m.current_stock,
+      minimum_stock: m.minimum_stock,
+      base_price: Number(m.base_price) || 0,
+      total_value: (Number(m.base_price) || 0) * (Number(m.current_stock) || 0),
+    }));
+
+    exportToExcel(
+      data,
+      `Katalog_Stok_Obat_${new Date().toISOString().split('T')[0]}`,
+      'Stok Obat',
+      [
+        { header: 'No', key: 'no', width: 6 },
+        { header: 'Kode Obat', key: 'code', width: 18 },
+        { header: 'Nama Obat Merk', key: 'name', width: 28 },
+        { header: 'Nama Generik', key: 'generic_name', width: 25 },
+        { header: 'Satuan', key: 'unit', width: 14 },
+        { header: 'Stok Terkini', key: 'current_stock', width: 15 },
+        { header: 'Batas Minimum', key: 'minimum_stock', width: 15 },
+        { header: 'Harga Satuan (Rp)', key: 'base_price', width: 18 },
+        { header: 'Nilai Stok (Rp)', key: 'total_value', width: 20 },
+      ]
+    );
+    toast.success('Berkas Excel Katalog & Stok Obat berhasil diunduh.');
+  };
+
+  const handleExportPdf = () => {
+    const columns = ['Kode Obat', 'Nama Obat', 'Bentuk Sediaan', 'Stok', 'Min', 'Harga Satuan'];
+    const rows = filtered.map((m) => [
+      m.code,
+      `${m.name}\n(${m.generic_name})`,
+      m.unit,
+      m.current_stock,
+      m.minimum_stock,
+      `Rp ${Number(m.base_price).toLocaleString('id-ID')}`,
+    ]);
+
+    exportTableToPdf(
+      'LAPORAN PERSEDIAAN OBAT DEPO FARMASI',
+      columns,
+      rows,
+      `Stok_Obat_${new Date().toISOString().split('T')[0]}`,
+      `Total ${filtered.length} Item Katalog Obat Terdaftar`
+    );
+    toast.success('Berkas PDF Stok Obat berhasil diunduh.');
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
@@ -215,7 +272,25 @@ export const PharmacyStocksPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <FileSpreadsheet className="w-4 h-4 mr-1.5 text-emerald-300" />
+            Excel
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPdf}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <Download className="w-4 h-4 mr-1.5 text-rose-300" />
+            PDF
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -224,7 +299,7 @@ export const PharmacyStocksPage: React.FC = () => {
             className="bg-white/10 hover:bg-white/20 text-white border-white/20"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Segarkan Stok
+            Segarkan
           </Button>
           <Button
             size="sm"

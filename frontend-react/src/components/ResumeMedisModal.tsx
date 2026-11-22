@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '../services/api';
 import { Button } from './ui/Button';
-import { Printer, X, FileText, CheckCircle2, ShieldCheck, HeartPulse } from 'lucide-react';
+import { Printer, X, FileText, CheckCircle2, ShieldCheck, HeartPulse, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { exportResumeMedisToPdf } from '../utils/pdfExport';
 
 interface ResumeMedisModalProps {
   visitId: string | null;
@@ -54,6 +55,21 @@ export const ResumeMedisModal: React.FC<ResumeMedisModalProps> = ({ visitId, isO
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data || loading}
+              onClick={() => {
+                if (data) {
+                  exportResumeMedisToPdf(data);
+                  toast.success('Berkas PDF Resume Medis berhasil diunduh.');
+                }
+              }}
+              className="border-rose-300 text-rose-700 hover:bg-rose-50"
+            >
+              <Download className="w-4 h-4 mr-1.5 text-rose-600" />
+              Download PDF
+            </Button>
             <Button variant="primary" size="sm" onClick={handlePrint}>
               <Printer className="w-4 h-4 mr-1.5" />
               Cetak Dokumen

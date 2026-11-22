@@ -15,7 +15,8 @@ import {
   Users, 
   Building2,
   Stethoscope,
-  RefreshCw
+  RefreshCw,
+  FileSpreadsheet
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -33,6 +34,8 @@ import { toast } from 'sonner';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { apiClient } from '../services/api';
+import { exportToExcel } from '../utils/excelExport';
+import { exportTableToPdf } from '../utils/pdfExport';
 
 type TabType = 'top_diagnoses' | 'financial' | 'visits' | 'medicines';
 
@@ -105,6 +108,183 @@ export const ReportsPage: React.FC = () => {
     }
   };
 
+  // Export to Excel (.xlsx) handler
+  const handleExportExcel = () => {
+    const periodLabel = `${startDate}_sd_${endDate}`;
+    if (activeTab === 'top_diagnoses') {
+      const items = (topDiagnoses?.items || []).map((d: any) => ({
+        rank: d.rank,
+        icd10: d.icd10_code,
+        diagnosis_name: d.diagnosis_name,
+        male: d.male_cases,
+        female: d.female_cases,
+        primary: d.primary_cases,
+        total: d.total_cases,
+        percentage: `${d.percentage}%`,
+      }));
+
+      exportToExcel(
+        items,
+        `Laporan_10_Besar_Penyakit_RL5.3_${periodLabel}`,
+        'RL 5.3 Diagnosa',
+        [
+          { header: 'No', key: 'rank', width: 6 },
+          { header: 'Kode ICD-10', key: 'icd10', width: 14 },
+          { header: 'Nama Diagnosis / Penyakit', key: 'diagnosis_name', width: 35 },
+          { header: 'Laki-Laki', key: 'male', width: 12 },
+          { header: 'Perempuan', key: 'female', width: 12 },
+          { header: 'Kasus Primer', key: 'primary', width: 14 },
+          { header: 'Total Kasus', key: 'total', width: 14 },
+          { header: 'Proporsi (%)', key: 'percentage', width: 14 },
+        ]
+      );
+      toast.success('Laporan 10 Besar Penyakit (Excel) berhasil diunduh.');
+    } else if (activeTab === 'financial') {
+      const items = (financialData?.payment_methods || []).map((m: any) => ({
+        method: m.method,
+        count: m.count,
+        amount: m.amount,
+        percentage: `${m.percentage}%`,
+      }));
+
+      exportToExcel(
+        items,
+        `Laporan_Rekonsiliasi_Finansial_${periodLabel}`,
+        'Rekonsiliasi Kasir',
+        [
+          { header: 'Metode Pembayaran', key: 'method', width: 22 },
+          { header: 'Jumlah Transaksi', key: 'count', width: 18 },
+          { header: 'Total Nominal (Rp)', key: 'amount', width: 22 },
+          { header: 'Proporsi (%)', key: 'percentage', width: 14 },
+        ]
+      );
+      toast.success('Laporan Rekonsiliasi Finansial (Excel) berhasil diunduh.');
+    } else if (activeTab === 'visits') {
+      const items = (visitSummary?.by_polyclinic || []).map((p: any) => ({
+        polyclinic: p.name,
+        total: p.total,
+        completed: p.completed,
+        percentage: `${p.percentage}%`,
+      }));
+
+      exportToExcel(
+        items,
+        `Laporan_Kunjungan_Poliklinik_${periodLabel}`,
+        'Kunjungan Poli',
+        [
+          { header: 'Nama Poliklinik', key: 'polyclinic', width: 28 },
+          { header: 'Total Kunjungan', key: 'total', width: 18 },
+          { header: 'Kunjungan Selesai', key: 'completed', width: 18 },
+          { header: 'Proporsi (%)', key: 'percentage', width: 14 },
+        ]
+      );
+      toast.success('Laporan Kunjungan Poliklinik (Excel) berhasil diunduh.');
+    } else if (activeTab === 'medicines') {
+      const items = (medicineData?.items || []).map((m: any) => ({
+        code: m.code,
+        name: m.name,
+        generic: m.generic_name,
+        unit: m.unit,
+        base_price: m.base_price,
+        dispensed: m.total_dispensed,
+        current_stock: m.current_stock,
+        total_value: m.total_value,
+      }));
+
+      exportToExcel(
+        items,
+        `Laporan_Pemakaian_Obat_${periodLabel}`,
+        'Pemakaian Obat',
+        [
+          { header: 'Kode Obat', key: 'code', width: 16 },
+          { header: 'Nama Obat', key: 'name', width: 28 },
+          { header: 'Nama Generik', key: 'generic', width: 25 },
+          { header: 'Bentuk Sediaan', key: 'unit', width: 15 },
+          { header: 'Tarif Dasar (Rp)', key: 'base_price', width: 18 },
+          { header: 'Total Diserahkan', key: 'dispensed', width: 18 },
+          { header: 'Sisa Stok Depo', key: 'current_stock', width: 15 },
+          { header: 'Nilai Total (Rp)', key: 'total_value', width: 22 },
+        ]
+      );
+      toast.success('Laporan Pemakaian Obat (Excel) berhasil diunduh.');
+    }
+  };
+
+  // Export to PDF handler
+  const handleExportPdf = () => {
+    const periodLabel = `Periode Pelayanan: ${startDate} s/d ${endDate}`;
+    if (activeTab === 'top_diagnoses') {
+      const columns = ['No', 'Kode ICD-10', 'Diagnosis / Penyakit', 'Laki', 'Perempuan', 'Total', 'Proporsi'];
+      const rows = (topDiagnoses?.items || []).map((d: any) => [
+        d.rank,
+        d.icd10_code,
+        d.diagnosis_name,
+        d.male_cases,
+        d.female_cases,
+        d.total_cases,
+        `${d.percentage}%`,
+      ]);
+      exportTableToPdf(
+        'LAPORAN 10 BESAR MORBIDITAS RAWAT JALAN (RL 5.3)',
+        columns,
+        rows,
+        `Laporan_10_Besar_Penyakit_${startDate}_${endDate}`,
+        periodLabel
+      );
+      toast.success('Berkas PDF 10 Besar Penyakit berhasil diunduh.');
+    } else if (activeTab === 'financial') {
+      const columns = ['Metode Pembayaran', 'Jumlah Transaksi', 'Total Diterima (Rp)', 'Proporsi'];
+      const rows = (financialData?.payment_methods || []).map((m: any) => [
+        m.method,
+        m.count,
+        `Rp ${new Intl.NumberFormat('id-ID').format(m.amount)}`,
+        `${m.percentage}%`,
+      ]);
+      exportTableToPdf(
+        'LAPORAN REKONSILIASI PENERIMAAN KASIR',
+        columns,
+        rows,
+        `Laporan_Rekonsiliasi_Finansial_${startDate}_${endDate}`,
+        periodLabel
+      );
+      toast.success('Berkas PDF Rekonsiliasi Finansial berhasil diunduh.');
+    } else if (activeTab === 'visits') {
+      const columns = ['Unit Poliklinik', 'Total Pasien', 'Layanan Selesai', 'Proporsi (%)'];
+      const rows = (visitSummary?.by_polyclinic || []).map((p: any) => [
+        p.name,
+        p.total,
+        p.completed,
+        `${p.percentage}%`,
+      ]);
+      exportTableToPdf(
+        'LAPORAN DISTRIBUSI KUNJUNGAN POLIKLINIK',
+        columns,
+        rows,
+        `Laporan_Kunjungan_Poli_${startDate}_${endDate}`,
+        periodLabel
+      );
+      toast.success('Berkas PDF Kunjungan Poliklinik berhasil diunduh.');
+    } else if (activeTab === 'medicines') {
+      const columns = ['Kode Obat', 'Nama Obat & Sediaan', 'Harga Satuan', 'Diserahkan', 'Sisa Stok', 'Nilai Total'];
+      const rows = (medicineData?.items || []).map((m: any) => [
+        m.code,
+        `${m.name} (${m.unit})`,
+        `Rp ${new Intl.NumberFormat('id-ID').format(m.base_price)}`,
+        m.total_dispensed,
+        m.current_stock,
+        `Rp ${new Intl.NumberFormat('id-ID').format(m.total_value)}`,
+      ]);
+      exportTableToPdf(
+        'LAPORAN PERPUTARAN & MUTASI OBAT APOTEK',
+        columns,
+        rows,
+        `Laporan_Pemakaian_Obat_${startDate}_${endDate}`,
+        periodLabel
+      );
+      toast.success('Berkas PDF Pemakaian Obat berhasil diunduh.');
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto print:p-0">
       
@@ -125,21 +305,43 @@ export const ReportsPage: React.FC = () => {
           </p>
         </div>
 
+        {/* Action Buttons: Excel, PDF, Print, Refresh */}
         <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+          >
+            <FileSpreadsheet className="w-4 h-4 mr-1.5 text-emerald-600" />
+            Export Excel (.xlsx)
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPdf}
+            className="border-rose-300 text-rose-700 hover:bg-rose-50"
+          >
+            <Download className="w-4 h-4 mr-1.5 text-rose-600" />
+            Download PDF
+          </Button>
+
           <Button variant="outline" size="sm" onClick={handlePrint}>
             <Printer className="w-4 h-4 mr-1.5" />
-            Cetak Laporan / PDF
+            Cetak
           </Button>
+
           <Button variant="primary" size="sm" onClick={fetchReports} isLoading={loading}>
             <RefreshCw className="w-4 h-4 mr-1.5" />
-            Segarkan Data
+            Segarkan
           </Button>
         </div>
       </div>
 
       {/* Date Filter Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 print:hidden">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
             <Filter className="w-3.5 h-3.5" /> Periode:
           </span>
@@ -160,29 +362,27 @@ export const ReportsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleQuickPeriod('month')}
-            className="px-2.5 py-1 text-xs font-medium rounded-lg border border-teal-300 bg-teal-50 text-teal-800 font-bold"
+            className="px-2.5 py-1 text-xs font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
           >
             Bulan Ini
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-slate-400">Dari:</span>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-1 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+            <Calendar className="w-4 h-4 text-slate-400 ml-1" />
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-2.5 py-1 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono"
+              className="bg-transparent text-xs text-slate-800 border-none focus:outline-none"
             />
-          </div>
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-slate-400">Sampai:</span>
+            <span className="text-xs text-slate-400">s/d</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-2.5 py-1 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono"
+              className="bg-transparent text-xs text-slate-800 border-none focus:outline-none"
             />
           </div>
         </div>
@@ -252,11 +452,11 @@ export const ReportsPage: React.FC = () => {
           }`}
         >
           <Pill className="w-4 h-4 text-amber-600" />
-          Audit Mutasi & Pemakaian Obat
+          Perputaran Obat Apotek
         </button>
       </div>
 
-      {/* Tab 1: 10 Besar Penyakit (RL 5.3) */}
+      {/* Tab 1: 10 Besar Morbiditas (RL 5.3) */}
       {activeTab === 'top_diagnoses' && (
         <div className="space-y-6">
           <Card 
@@ -320,8 +520,8 @@ export const ReportsPage: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-slate-400 italic">
-                        Tidak ada data diagnosa pada rentang tanggal yang dipilih.
+                      <td colSpan={8} className="text-center py-6 text-slate-400">
+                        Belum ada diagnosis medis pada periode ini.
                       </td>
                     </tr>
                   )}
@@ -335,14 +535,13 @@ export const ReportsPage: React.FC = () => {
       {/* Tab 2: Rekonsiliasi Finansial & Kasir */}
       {activeTab === 'financial' && (
         <div className="space-y-6">
-          {/* KPI Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card padding="md">
-              <span className="text-xs font-semibold text-slate-500 block mb-1">Total Pendapatan Terkumpul</span>
+              <span className="text-xs font-semibold text-slate-500 block mb-1">Total Pendapatan Bersih</span>
               <span className="text-2xl font-extrabold text-teal-700 font-mono">
                 Rp {new Intl.NumberFormat('id-ID').format(financialData?.summary?.total_revenue || 0)}
               </span>
-              <p className="text-[11px] text-slate-400 mt-1">Status Pembayaran SUCCESS</p>
+              <p className="text-[11px] text-slate-400 mt-1">Lunas (Settled Payment)</p>
             </Card>
 
             <Card padding="md">
@@ -387,7 +586,13 @@ export const ReportsPage: React.FC = () => {
                           <td className="py-2.5 px-3 text-right font-mono text-slate-600">{m.percentage}%</td>
                         </tr>
                       ))
-                    ) : null}
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="text-center py-6 text-slate-400">
+                          Tidak ada data pembayaran pada periode ini.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -415,7 +620,13 @@ export const ReportsPage: React.FC = () => {
                           </td>
                         </tr>
                       ))
-                    ) : null}
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="text-center py-6 text-slate-400">
+                          Tidak ada catatan shift kasir.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -449,7 +660,13 @@ export const ReportsPage: React.FC = () => {
                           <td className="py-2.5 px-3 text-right font-mono text-slate-600">{p.percentage}%</td>
                         </tr>
                       ))
-                    ) : null}
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="text-center py-6 text-slate-400">
+                          Tidak ada data kunjungan poliklinik.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -462,7 +679,7 @@ export const ReportsPage: React.FC = () => {
                     <tr>
                       <th className="py-2.5 px-3">Nama Dokter Spesialis</th>
                       <th className="py-2.5 px-3">Poliklinik</th>
-                      <th className="py-2.5 px-3 text-center">Dilayani</th>
+                      <th className="py-2.5 px-3 text-center">Ditangani</th>
                       <th className="py-2.5 px-3 text-center">Selesai</th>
                     </tr>
                   </thead>
@@ -476,7 +693,13 @@ export const ReportsPage: React.FC = () => {
                           <td className="py-2.5 px-3 text-center font-mono text-emerald-700">{d.completed}</td>
                         </tr>
                       ))
-                    ) : null}
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="text-center py-6 text-slate-400">
+                          Tidak ada data pelayanan dokter.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -532,7 +755,13 @@ export const ReportsPage: React.FC = () => {
                       </td>
                     </tr>
                   ))
-                ) : null}
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="text-center py-6 text-slate-400">
+                      Tidak ada perputaran obat pada periode ini.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -542,4 +771,5 @@ export const ReportsPage: React.FC = () => {
     </div>
   );
 };
+
 export default ReportsPage;
