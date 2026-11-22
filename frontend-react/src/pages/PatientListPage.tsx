@@ -210,14 +210,23 @@ export const PatientListPage: React.FC = () => {
                         {p.address}
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          onClick={() => navigate(`/registration?patient_id=${p.id}`)}
-                          rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-                        >
-                          Daftar Rawat Jalan
-                        </Button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate(`/patients/${p.id}/history`)}
+                          >
+                            Riwayat EMR
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            onClick={() => navigate(`/registration?patient_id=${p.id}`)}
+                            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                          >
+                            Daftar Poli
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -248,15 +257,25 @@ export const PatientListPage: React.FC = () => {
                     <p className="text-slate-500 line-clamp-1">{p.address}</p>
                   </div>
 
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    className="w-full min-h-[44px]"
-                    onClick={() => navigate(`/registration?patient_id=${p.id}`)}
-                    rightIcon={<ArrowRight className="w-4 h-4" />}
-                  >
-                    Daftar Rawat Jalan
-                  </Button>
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 min-h-[44px]"
+                      onClick={() => navigate(`/patients/${p.id}/history`)}
+                    >
+                      Riwayat EMR
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      className="flex-1 min-h-[44px]"
+                      onClick={() => navigate(`/registration?patient_id=${p.id}`)}
+                      rightIcon={<ArrowRight className="w-4 h-4" />}
+                    >
+                      Daftar Poli
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

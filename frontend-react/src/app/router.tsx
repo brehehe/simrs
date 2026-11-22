@@ -9,8 +9,11 @@ import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { RegistrationPage } from '../pages/RegistrationPage';
 import { PatientListPage } from '../pages/PatientListPage';
+import { PatientHistoryPage } from '../pages/PatientHistoryPage';
 import { QueueListPage } from '../pages/QueueListPage';
+import { TvQueuePage } from '../pages/TvQueuePage';
 import { DoctorExaminationPage } from '../pages/DoctorExaminationPage';
+import { LabOrdersPage } from '../pages/LabOrdersPage';
 import { PharmacyPage } from '../pages/PharmacyPage';
 import { CashierBillingPage } from '../pages/CashierBillingPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
@@ -50,6 +53,12 @@ export const router = createBrowserRouter([
     element: <SplashPage />,
   },
 
+  // Dedicated TV Waiting Room Queue Display (Public / Fullscreen)
+  {
+    path: '/tv-queue',
+    element: <TvQueuePage />,
+  },
+
   // Auth Routes (Public)
   {
     element: <AuthLayout />,
@@ -74,7 +83,9 @@ export const router = createBrowserRouter([
           },
           // 1. Patient & Registration
           { path: '/patients', element: <PatientListPage /> },
+          { path: '/patients/:id/history', element: <PatientHistoryPage /> },
           { path: '/registration', element: <RegistrationPage /> },
+          { path: '/visits-history', element: <PatientHistoryPage /> },
 
           // 2. Queue & Antrean
           { path: '/queue', element: <QueueListPage /> },
@@ -83,15 +94,20 @@ export const router = createBrowserRouter([
           // 3. Clinical Examination (EMR)
           { path: '/doctor/examination', element: <DoctorExaminationPage /> },
           { path: '/doctor/prescriptions', element: <PharmacyPage /> },
-          { path: '/doctor/lab-orders', element: <DoctorExaminationPage /> },
-          { path: '/lab/orders', element: <DoctorExaminationPage /> },
+          { path: '/doctor/lab-orders', element: <LabOrdersPage /> },
+          { path: '/doctor/history', element: <PatientHistoryPage /> },
 
-          // 4. Pharmacy & Dispensing
+          // 4. Laboratory
+          { path: '/lab/orders', element: <LabOrdersPage /> },
+          { path: '/lab/results', element: <LabOrdersPage /> },
+          { path: '/lab/history', element: <LabOrdersPage /> },
+
+          // 5. Pharmacy & Dispensing
           { path: '/pharmacy/prescriptions', element: <PharmacyPage /> },
           { path: '/pharmacy/dispensations', element: <PharmacyPage /> },
           { path: '/pharmacy/stocks', element: <PharmacyPage /> },
 
-          // 5. Cashier & Invoicing
+          // 6. Cashier & Invoicing
           { path: '/cashier/invoices', element: <CashierBillingPage /> },
           { path: '/cashier/payments', element: <CashierBillingPage /> },
           { path: '/cashier/history', element: <CashierBillingPage /> },
