@@ -141,6 +141,38 @@ prod-deploy: ## Deploy to production.
 endif
 
 #
+# SIMRS Local Development Targets
+#
+
+simrs-test: ## Run full SIMRS verification tests (Yii 54 tests + Node 11 tests)
+	@echo "=== 1/2 RUNNING YII CORE BACKEND & CONCURRENCY TESTS ==="
+	@php tests/api_verification.php
+	@echo ""
+	@echo "=== 2/2 RUNNING NODE.JS SUPPORTING SERVICE TESTS ==="
+	@cd backend-node && npm test
+	@echo ""
+	@echo ">>> ALL 65 AUTOMATED TESTS PASSED SUCCESSFULLY! <<<"
+
+simrs-build: ## Build both supporting Node service and React frontend
+	@echo "Building Node.js Supporting Backend..."
+	@cd backend-node && npm run build
+	@echo "Building React Frontend SPA..."
+	@cd frontend-react && npm run build
+	@echo ">>> Production builds completed successfully! <<<"
+
+simrs-serve-backend: ## Run Yii Core REST API server on http://127.0.0.1:8080
+	./yii serve --port=8080
+
+simrs-serve-node: ## Run Node.js Supporting Service on http://127.0.0.1:3001
+	cd backend-node && npm run dev
+
+simrs-serve-frontend: ## Run React Vite Frontend dev server on http://localhost:5173
+	cd frontend-react && npm run dev
+
+simrs-db-seed: ## Re-seed PostgreSQL database simrs_db with clinical mock data
+	psql -U simrs_core -d simrs_db -h 127.0.0.1 -f database/seeds.sql
+
+#
 # Other
 #
 

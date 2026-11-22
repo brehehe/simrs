@@ -27,43 +27,43 @@ Pengembangan dibagi ke dalam 6 fase berdurasi masing-masing 12 jam untuk memasti
 
 #### ⏱️ Jam 00 — 12: Architecture & Database Foundation
 - [x] Finalisasi perencanaan teknis di `docs/planning/`.
-- [ ] Konfigurasi database PostgreSQL (koneksi `simrs_core` dan `simrs_dashboard_ro`).
-- [ ] Penulisan migrasi database PostgreSQL (30 tabel lengkap dengan foreign key dan check constraints).
-- [ ] Pembuatan index performa dan partial unique index (pencegah pendaftaran ganda).
-- [ ] Seeding data master realistis: 6 Poliklinik, 10 Dokter, 50 Diagnosis ICD-10, 20 Tindakan Medis, 30 Obat dengan stok awal, 10 Paket Uji Lab.
+- [x] Konfigurasi database PostgreSQL (koneksi `simrs_core` dan `simrs_dashboard_ro`).
+- [x] Penulisan migrasi database PostgreSQL (30 tabel lengkap dengan foreign key dan check constraints).
+- [x] Pembuatan index performa dan partial unique index (pencegah pendaftaran ganda).
+- [x] Seeding data master realistis: 6 Poliklinik, 10 Dokter, 50 Diagnosis ICD-10, 20 Tindakan Medis, 30 Obat dengan stok awal, 10 Paket Uji Lab.
 
 #### ⏱️ Jam 12 — 24: Core Backend — Auth, Master Data, & Pendaftaran Antrean
-- [ ] Implementasi autentikasi JWT stateless dan filter otorisasi peran (RBAC Behavior) di Yii.
-- [ ] Implementasi endpoint CRUD Master Pasien (Auto-generation No. RM: `RM-YYYYMM-XXXXX`).
-- [ ] Implementasi Service Layer Pendaftaran: `RegistrationService.php`.
-- [ ] Implementasi Atomic Queue Counter pada tabel `queue_counters` untuk nomor urut antrean (`A001`, `B001`).
-- [ ] Unit & Integration Test: Penolakan pendaftaran duplikat pasien di tanggal dan poli yang sama (HTTP 409).
+- [x] Implementasi autentikasi JWT stateless dan filter otorisasi peran (RBAC Behavior) di Yii.
+- [x] Implementasi endpoint CRUD Master Pasien (Auto-generation No. RM: `RM-YYYYMM-XXXXX`).
+- [x] Implementasi Service Layer Pendaftaran: `RegistrationService.php`.
+- [x] Implementasi Atomic Queue Counter pada tabel `queue_counters` untuk nomor urut antrean (`A001`, `B001`).
+- [x] Unit & Integration Test: Penolakan pendaftaran duplikat pasien di tanggal dan poli yang sama (HTTP 409).
 
 #### ⏱️ Jam 24 — 36: Core Backend — RME Dokter, Tindakan Medis, & Resep
-- [ ] Implementasi Service Layer Klinis: `MedicalRecordService.php`.
-- [ ] Pencatatan data SOAP, tanda vital terstandarisasi, dan relasi kode ICD-10 primer/sekunder.
-- [ ] Pencatatan tindakan medis dengan mekanisme penarikan `snapshot_price` permanen.
-- [ ] Modul penulisan resep obat oleh dokter (status resep: `DRAFT` ➔ `SUBMITTED`).
-- [ ] Riwayat perubahan medis pada `medical_record_revisions`.
+- [x] Implementasi Service Layer Klinis: `MedicalRecordService.php`.
+- [x] Pencatatan data SOAP, tanda vital terstandarisasi, dan relasi kode ICD-10 primer/sekunder.
+- [x] Pencatatan tindakan medis dengan mekanisme penarikan `snapshot_price` permanen.
+- [x] Modul penulisan resep obat oleh dokter (status resep: `DRAFT` ➔ `SUBMITTED`).
+- [x] Riwayat perubahan medis pada `medical_record_revisions`.
 
 #### ⏱️ Jam 36 — 48: Core Backend — Farmasi (Stock Lock) & Laboratorium
-- [ ] Implementasi Service Layer Farmasi: `PharmacyDispensationService.php`.
-- [ ] Proteksi *Race Condition* stok obat menggunakan transaksi PostgreSQL dan row lock `SELECT FOR UPDATE`.
-- [ ] Pencatatan histori kartu stok pada `stock_movements`.
-- [ ] Modul permintaan uji laboratorium oleh dokter (`lab_orders`).
-- [ ] Implementasi internal REST API Yii (`/internal-api/v1/lab-results`) untuk penerimaan hasil lab berotorisasi.
+- [x] Implementasi Service Layer Farmasi: `PharmacyDispensationService.php`.
+- [x] Proteksi *Race Condition* stok obat menggunakan transaksi PostgreSQL dan row lock `SELECT FOR UPDATE`.
+- [x] Pencatatan histori kartu stok pada `stock_movements`.
+- [x] Modul permintaan uji laboratorium oleh dokter (`lab_orders`).
+- [x] Implementasi internal REST API Yii (`/internal-api/v1/lab-results`) untuk penerimaan hasil lab berotorisasi.
 
 #### ⏱️ Jam 48 — 60: Core Backend (Billing) & Supporting Backend (Node.js)
-- [ ] Implementasi Service Layer Keuangan: `BillingPaymentService.php`.
-- [ ] Otomatisasi pembentukan invoice teragregasi (Registrasi + Tindakan + Lab + Obat).
-- [ ] Implementasi transaksi pembayaran kasir dengan perlindungan `idempotency_key` dan row lock invoice balance.
-- [ ] Inisialisasi microservice Node.js Express: konfigurasi Zod validation dan centralized error handler.
-- [ ] Implementasi Lab Webhook Gateway pada Node.js dengan mekanisme exponential backoff retry.
-- [ ] Implementasi Dashboard API read-only pada Node.js via query SQL langsung ke PostgreSQL.
+- [x] Implementasi Service Layer Keuangan: `BillingPaymentService.php`.
+- [x] Otomatisasi pembentukan invoice teragregasi (Registrasi + Tindakan + Lab + Obat).
+- [x] Implementasi transaksi pembayaran kasir dengan perlindungan `idempotency_key` dan row lock invoice balance.
+- [x] Inisialisasi microservice Node.js Express: konfigurasi Zod validation dan centralized error handler.
+- [x] Implementasi Lab Webhook Gateway pada Node.js dengan mekanisme exponential backoff retry.
+- [x] Implementasi Dashboard API read-only pada Node.js via query SQL langsung ke PostgreSQL.
 
 #### ⏱️ Jam 60 — 72: React Frontend UI, Automated Testing, & Postman
-- [ ] Setup Frontend React + Vite + Tailwind CSS + TanStack Query.
-- [ ] Implementasi UI berbasis Role:
+- [x] Setup Frontend React + Vite + Tailwind CSS + TanStack Query.
+- [x] Implementasi UI berbasis Role:
   - Form Login & Route Guard.
   - Modul Pendaftaran & Cetak Tiket Antrean.
   - Modul Dokter (Worklist antrean, input SOAP, tindakan, resep, order lab).
@@ -71,9 +71,9 @@ Pengembangan dibagi ke dalam 6 fase berdurasi masing-masing 12 jam untuk memasti
   - Modul Kasir (Rincian invoice & modal pembayaran kasir).
   - Tampilan Cetak Rincian Invoice & Bukti Kuitansi Pembayaran.
   - Dashboard Eksekutif (KPI Summary Cards & Recharts).
-- [ ] Eksekusi 18 skenario pengujian otomatis.
-- [ ] Pembuatan Postman Collection & Environment JSON lengkap.
-- [ ] Finalisasi dokumentasi README dan persiapan presentasi demonstrasi.
+- [x] Eksekusi 18+ skenario pengujian otomatis (54 Yii tests + 11 Node tests = 65 tests passed).
+- [x] Pembuatan Postman Collection & Environment JSON lengkap.
+- [x] Finalisasi dokumentasi README dan persiapan presentasi demonstrasi.
 
 ---
 

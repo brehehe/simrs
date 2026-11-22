@@ -410,6 +410,65 @@ $visitCheck = \App\Common\Database::fetchOne("SELECT status FROM visits WHERE id
 assertTest("Visit status is COMPLETED", $visitCheck['status'] === 'COMPLETED');
 
 // -----------------------------------------------------------------------------
+// TEST 19: CRITICAL CASE 5 - Internal Lab Ingestion Security (X-Internal-Secret)
+// -----------------------------------------------------------------------------
+echo "\nTest 19: Internal Lab Security (Unauthorized Secret Rejection)\n";
+$internalController = new \App\Controllers\InternalApiController();
+$createdLabOrderId = $data13['data']['id'];
+
+$req19 = (new ServerRequest(method: 'POST', uri: "/internal-api/v1/lab-results"))
+    ->withHeader('X-Internal-Secret', 'wrong-secret-token')
+    ->withParsedBody([
+        'lab_order_id' => $createdLabOrderId,
+        'results' => [],
+    ]);
+
+$res19 = $internalController->receiveLabResults($req19);
+assertTest("Status code 401 Unauthorized", $res19->getStatusCode() === 401);
+
+// -----------------------------------------------------------------------------
+// TEST 20: CRITICAL CASE 5 - Ingest Lab Analyzer Results & Order Completion
+// -----------------------------------------------------------------------------
+echo "\nTest 20: CRITICAL CASE 5 - Ingest Lab Analyzer Results & Idempotency\n";
+$labOrderItem = \App\Common\Database::fetchOne(
+    "SELECT id FROM lab_order_items WHERE lab_order_id = :id",
+    [':id' => $createdLabOrderId]
+);
+
+$req20 = (new ServerRequest(method: 'POST', uri: "/internal-api/v1/lab-results"))
+    ->withHeader('X-Internal-Secret', 'simrs-service-secret-inova-2026')
+    ->withHeader('X-Idempotency-Key', 'idemp-lab-res-' . time())
+    ->withParsedBody([
+        'lab_order_id' => $createdLabOrderId,
+        'results' => [
+            [
+                'lab_order_item_id' => $labOrderItem['id'],
+                'result_value' => '115',
+                'unit' => 'mg/dL',
+                'normal_range' => '70 - 140',
+                'status' => 'FINAL',
+                'notes' => 'Glukosa darah sewaktu normal.',
+            ],
+        ],
+    ]);
+
+$res20 = $internalController->receiveLabResults($req20);
+$data20 = json_decode((string) $res20->getBody(), true);
+
+assertTest("Status code 200 OK", $res20->getStatusCode() === 200);
+assertTest("Lab Order completed", $data20['data']['status'] === 'COMPLETED');
+
+$labOrderDb = \App\Common\Database::fetchOne("SELECT status FROM lab_orders WHERE id = :id", [':id' => $createdLabOrderId]);
+assertTest("Lab Order status in DB is COMPLETED", $labOrderDb['status'] === 'COMPLETED');
+
+$labResultDb = \App\Common\Database::fetchOne("SELECT result_value, status FROM lab_results WHERE lab_order_id = :id", [':id' => $createdLabOrderId]);
+assertTest("Lab Result value stored accurately (115)", $labResultDb['result_value'] === '115');
+
+// Idempotent re-submission
+$res20Replay = $internalController->receiveLabResults($req20);
+assertTest("Idempotent replay returns 200 OK", $res20Replay->getStatusCode() === 200);
+
+// -----------------------------------------------------------------------------
 // SUMMARY
 // -----------------------------------------------------------------------------
 echo "\n=======================================================\n";
