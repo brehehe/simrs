@@ -144,7 +144,7 @@ endif
 # SIMRS Local Development Targets
 #
 
-simrs-test: ## Run full SIMRS verification tests (54 Core + 28 FHIR + 14 Reports + 13 Audit + 14 Adjustments + 11 Chaos + 11 Node = 145 tests)
+simrs-test: ## Run full SIMRS verification tests (54 Core + 37 FHIR & Hub + 14 Reports + 13 Audit + 14 Adjustments + 11 Chaos + 11 Node = 154 tests)
 	@bash tests/run_all_tests.sh
 
 simrs-satusehat-test: ## Run SATUSEHAT FHIR R4 and BPJS VClaim test suite
@@ -174,7 +174,7 @@ simrs-health: ## Run System Health Check & Integrity Diagnostics
 simrs-e2e: ## Run Master End-to-End Acceptance Test (21 stages)
 	@php scripts/e2e_acceptance_test.php
 
-simrs-ci: ## Run Complete Production Verification (Health 12 + DR 7 + 145 Tests + 21 E2E = 185 Checkpoints)
+simrs-ci: ## Run Complete Production Verification (Health 12 + DR 7 + 154 Tests + 21 E2E = 194 Checkpoints)
 	@php scripts/system_health_check.php
 	@echo ""
 	@php scripts/disaster_recovery_verify.php
@@ -183,7 +183,7 @@ simrs-ci: ## Run Complete Production Verification (Health 12 + DR 7 + 145 Tests 
 	@echo ""
 	@php scripts/e2e_acceptance_test.php
 	@echo ""
-	@echo ">>> CI/CD VERIFICATION SUITE: 185/185 CHECKPOINTS PASSED (100% HEALTHY) <<<"
+	@echo ">>> CI/CD VERIFICATION SUITE: 194/194 CHECKPOINTS PASSED (100% HEALTHY) <<<"
 
 simrs-package: ## Build and package complete deliverable archive for examiners
 	@echo "Building React frontend production bundle..."

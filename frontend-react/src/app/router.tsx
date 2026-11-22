@@ -18,6 +18,7 @@ import { PharmacyPage } from '../pages/PharmacyPage';
 import { CashierBillingPage } from '../pages/CashierBillingPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { AuditTrailPage } from '../pages/AuditTrailPage';
+import { SatuSehatPage } from '../pages/SatuSehatPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
@@ -116,6 +117,9 @@ export const router = createBrowserRouter([
 
           // 7. Clinical & Financial Reports (Kemenkes RL 5.3)
           { path: '/reports', element: <ReportsPage /> },
+
+          // 8. SATUSEHAT Kemenkes RI Hub & Monitoring
+          { path: '/satusehat', element: <SatuSehatPage /> },
 
           // Master Data fallbacks
           { path: '/staff', element: <DashboardPage /> },

@@ -161,6 +161,28 @@ try {
     assertTest("BPJS VClaim Stubs gagal: " . $e->getMessage(), false);
 }
 
+// --- TEST SUITE 5: SATUSEHAT BRIDGING HUB & BATCH SYNC ---
+echo "\n--- 5. Uji SATUSEHAT Bridging Hub & Monitoring Console ---\n";
+$satuSehatService = new SatuSehatService();
+try {
+    $stats = $satuSehatService->getGlobalStats();
+    assertTest("Global stats memiliki Organization ID resmi", ($stats['organization']['id'] ?? '') === '10000004');
+    assertTest("Global stats status koneksi CONNECTED", ($stats['organization']['status'] ?? '') === 'CONNECTED');
+    assertTest("Global stats menghitung total kunjungan RME", isset($stats['stats']['total_visits']) && $stats['stats']['total_visits'] > 0);
+    assertTest("Global stats menghitung persentase kepatuhan sync", isset($stats['stats']['sync_percentage']));
+    assertTest("Resource distribution mencakup 6 tipe FHIR R4", count($stats['resource_distribution']) === 6);
+
+    $globalLogs = $satuSehatService->getGlobalLogs('ALL', 10);
+    assertTest("Global logs transmisi SATUSEHAT dapat diambil", is_array($globalLogs));
+    assertTest("Entri log memuat nama pasien dan No RM", !empty($globalLogs[0]['patient_name']) && !empty($globalLogs[0]['mr_number']));
+
+    $batchResult = $satuSehatService->batchSync(5);
+    assertTest("Batch sync memproses kunjungan pending", isset($batchResult['synced_count']));
+    assertTest("Batch sync format hasil valid", is_array($batchResult['synced']));
+} catch (Exception $e) {
+    assertTest("SATUSEHAT Bridging Hub gagal: " . $e->getMessage(), false);
+}
+
 echo "\n========================================================================\n";
 echo "📊 HASIL PENGUJIAN FASE 7:\n";
 echo "  Total Berhasil: {$passCount}\n";

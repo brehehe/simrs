@@ -92,4 +92,50 @@ class SatuSehatController
             return ResponseHelper::error($e->getMessage(), $code);
         }
     }
+
+    /**
+     * GET /api/v1/satusehat/stats
+     */
+    public function getGlobalStats(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            $stats = $this->satuSehatService->getGlobalStats();
+            return ResponseHelper::success($stats, "Statistik integrasi SATUSEHAT berhasil diambil.");
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * GET /api/v1/satusehat/logs
+     */
+    public function getGlobalLogs(ServerRequestInterface $request): ResponseInterface
+    {
+        $queryParams = $request->getQueryParams();
+        $status = $queryParams['status'] ?? null;
+        $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 50;
+
+        try {
+            $logs = $this->satuSehatService->getGlobalLogs($status, $limit);
+            return ResponseHelper::success($logs, "Log transmisi global SATUSEHAT berhasil diambil.");
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * POST /api/v1/satusehat/batch-sync
+     */
+    public function batchSync(ServerRequestInterface $request): ResponseInterface
+    {
+        $body = (array)($request->getParsedBody() ?? []);
+        $limit = isset($body['limit']) ? (int)$body['limit'] : 20;
+
+        try {
+            $result = $this->satuSehatService->batchSync($limit);
+            return ResponseHelper::success($result, "Sinkronisasi masal (batch sync) SATUSEHAT berhasil diproses.");
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
 }

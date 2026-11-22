@@ -46,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'ADMIN':
         return [
           { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+          { label: 'SATUSEHAT Kemenkes', href: '/satusehat', icon: ShieldCheck },
           { label: 'Laporan & Rekonsiliasi', href: '/reports', icon: BarChart3 },
           { label: 'Data Pasien', href: '/patients', icon: Users },
           { label: 'Dokter & Staf', href: '/staff', icon: Stethoscope },
@@ -72,6 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           { label: 'Resep Obat', href: '/doctor/prescriptions', icon: Pill },
           { label: 'Permintaan Lab', href: '/doctor/lab-orders', icon: FlaskConical },
           { label: 'Riwayat Pasien', href: '/doctor/history', icon: FileText },
+          { label: 'SATUSEHAT Hub', href: '/satusehat', icon: ShieldCheck },
         ];
       case 'PHARMACY':
         return [

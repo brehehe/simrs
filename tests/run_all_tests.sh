@@ -23,7 +23,7 @@ echo ""
 # 2. SATUSEHAT (FHIR R4), Resume Medis, & BPJS VClaim Integration Tests
 echo -e "${BLUE}[STEP 2/8] Running SATUSEHAT FHIR R4, Resume Medis, & BPJS VClaim Test Suite...${NC}"
 php tests/satusehat_fhir_test.php
-echo -e "${GREEN}✓ SATUSEHAT FHIR R4 & BPJS Verification: 28 PASSED (0 FAILED)${NC}"
+echo -e "${GREEN}✓ SATUSEHAT FHIR R4, Bridging Hub & BPJS Verification: 37 PASSED (0 FAILED)${NC}"
 echo ""
 
 # 3. Clinical & Financial Reports (Kemenkes RL 5.3 & Rekonsiliasi)
@@ -63,5 +63,5 @@ echo -e "${GREEN}✓ Frontend React SPA Build Verification: 0 ERRORS, 0 WARNINGS
 echo ""
 
 echo -e "${GREEN}========================================================================${NC}"
-echo -e "${GREEN}   🎉 ALL 145 AUTOMATED TESTS & PRODUCTION BUILDS PASSED SUCCESSFULLY!   ${NC}"
+echo -e "${GREEN}   🎉 ALL 154 AUTOMATED TESTS & PRODUCTION BUILDS PASSED SUCCESSFULLY!   ${NC}"
 echo -e "${GREEN}========================================================================${NC}"

@@ -30,7 +30,7 @@ show_menu() {
     echo -e "${BOLD}PILIH MENU OPERASIONAL / PENGUJIAN:${NC}"
     echo ""
     echo -e "  ${GREEN}1)${NC} 🧪 Jalankan Master Acceptance Test E2E (${BOLD}21 Tahapan Alur Rumah Sakit${NC})"
-    echo -e "  ${GREEN}2)${NC} 📊 Jalankan Full Automated Test Suite (${BOLD}145 Unit & Integration Tests${NC})"
+    echo -e "  ${GREEN}2)${NC} 📊 Jalankan Full Automated Test Suite (${BOLD}154 Unit & Integration Tests${NC})"
     echo -e "  ${GREEN}3)${NC} 🩺 Jalankan System Health Check & Integrity Diagnostics (${BOLD}12 Monitors 100% OK${NC})"
     echo -e "  ${GREEN}4)${NC} 🛡️  Jalankan Uji Audit Trail Permenkes 24/2022 (${BOLD}13 Kepatuhan RME Tests${NC})"
     echo -e "  ${GREEN}5)${NC} 💰 Jalankan Uji Penyesuaian Finansial Kasus 4 (${BOLD}14 Invoice Adjustment Tests${NC})"

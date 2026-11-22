@@ -154,6 +154,15 @@ return [
                 ->name('api.internal.lab_results'),
 
             // 8. SATUSEHAT (FHIR R4) & Resume Medis Endpoints (Kemenkes RI Permenkes 24/2022)
+            Route::get('/api/v1/satusehat/stats')
+                ->action([SatuSehatController::class, 'getGlobalStats'])
+                ->name('api.satusehat.stats'),
+            Route::get('/api/v1/satusehat/logs')
+                ->action([SatuSehatController::class, 'getGlobalLogs'])
+                ->name('api.satusehat.global_logs'),
+            Route::post('/api/v1/satusehat/batch-sync')
+                ->action([SatuSehatController::class, 'batchSync'])
+                ->name('api.satusehat.batch_sync'),
             Route::get('/api/v1/visits/{id}/fhir-bundle')
                 ->action([SatuSehatController::class, 'getFhirBundle'])
                 ->name('api.satusehat.fhir_bundle'),

@@ -51,6 +51,13 @@ class Database
         return $stmt->fetchAll();
     }
 
+    public static function fetchColumn(string $sql, array $params = [], int $columnNumber = 0): mixed
+    {
+        $stmt = self::pdo()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchColumn($columnNumber);
+    }
+
     public static function execute(string $sql, array $params = []): int
     {
         $stmt = self::pdo()->prepare($sql);

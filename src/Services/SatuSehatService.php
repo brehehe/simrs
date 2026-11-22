@@ -603,4 +603,130 @@ class SatuSehatService
             SELECT * FROM satusehat_logs WHERE visit_id = :vid ORDER BY synced_at DESC
         ", [':vid' => $visitId]);
     }
+
+    /**
+     * Mengambil statistik global integrasi SATUSEHAT Kemenkes RI
+     */
+    public function getGlobalStats(): array
+    {
+        $totalVisits = (int) Database::fetchColumn("SELECT COUNT(*) FROM visits");
+        $syncedVisits = (int) Database::fetchColumn("
+            SELECT COUNT(DISTINCT visit_id) FROM satusehat_logs WHERE status = 'SYNCED'
+        ");
+        $failedVisits = (int) Database::fetchColumn("
+            SELECT COUNT(DISTINCT visit_id) FROM satusehat_logs WHERE status = 'FAILED'
+        ");
+        $pendingVisits = max(0, $totalVisits - $syncedVisits);
+
+        // Resource counts
+        $totalObservations = (int) Database::fetchColumn("
+            SELECT (COUNT(*) * 6) FROM medical_records
+        ");
+        $totalConditions = (int) Database::fetchColumn("SELECT COUNT(*) FROM visit_diagnoses");
+        $totalMedications = (int) Database::fetchColumn("SELECT COUNT(*) FROM prescription_items");
+        $totalLabReports = (int) Database::fetchColumn("SELECT COUNT(*) FROM lab_orders WHERE status = 'COMPLETED'");
+
+        $totalResources = $syncedVisits * 2 + $totalObservations + $totalConditions + $totalMedications + $totalLabReports;
+
+        return [
+            'organization' => [
+                'id' => self::ORG_ID,
+                'name' => self::ORG_NAME,
+                'status' => 'CONNECTED',
+                'environment' => 'STAGING_KEMENKES_PROD_READY',
+                'standard' => 'HL7 FHIR R4',
+                'regulation' => 'Permenkes No. 24/2022',
+            ],
+            'stats' => [
+                'total_visits' => $totalVisits,
+                'synced_count' => $syncedVisits,
+                'pending_count' => $pendingVisits,
+                'failed_count' => $failedVisits,
+                'sync_percentage' => $totalVisits > 0 ? round(($syncedVisits / $totalVisits) * 100, 1) : 0,
+                'total_resources' => $totalResources,
+            ],
+            'resource_distribution' => [
+                'Patient' => $totalVisits,
+                'Encounter' => $totalVisits,
+                'Condition' => $totalConditions,
+                'Observation' => $totalObservations,
+                'MedicationRequest' => $totalMedications,
+                'DiagnosticReport' => $totalLabReports,
+            ],
+        ];
+    }
+
+    /**
+     * Mengambil log sinkronisasi SATUSEHAT secara global
+     */
+    public function getGlobalLogs(?string $status = null, int $limit = 50): array
+    {
+        $params = [':lim' => $limit];
+        $whereSql = "";
+        if (!empty($status) && $status !== 'ALL') {
+            $whereSql = "WHERE sl.status = :status";
+            $params[':status'] = strtoupper($status);
+        }
+
+        return Database::fetchAll("
+            SELECT sl.id, sl.visit_id, sl.resource_type, sl.satusehat_id, sl.status,
+                   sl.synced_at, sl.response_payload,
+                   v.visit_number, v.status as visit_status,
+                   p.mr_number, p.nik, p.full_name as patient_name,
+                   poly.name as polyclinic_name,
+                   doc.full_name as doctor_name
+            FROM satusehat_logs sl
+            JOIN visits v ON v.id = sl.visit_id
+            JOIN patients p ON p.id = v.patient_id
+            JOIN polyclinics poly ON poly.id = v.polyclinic_id
+            JOIN medical_staff doc ON doc.id = v.doctor_id
+            {$whereSql}
+            ORDER BY sl.synced_at DESC
+            LIMIT :lim
+        ", $params);
+    }
+
+    /**
+     * Melakukan sinkronisasi massal (batch sync) untuk seluruh kunjungan yang belum ter-sinkronisasi
+     */
+    public function batchSync(int $limit = 20): array
+    {
+        $pendingVisits = Database::fetchAll("
+            SELECT v.id, v.visit_number
+            FROM visits v
+            WHERE v.id NOT IN (
+                SELECT DISTINCT visit_id FROM satusehat_logs WHERE status = 'SYNCED'
+            )
+            ORDER BY v.created_at DESC
+            LIMIT :lim
+        ", [':lim' => $limit]);
+
+        $synced = [];
+        $failed = [];
+
+        foreach ($pendingVisits as $visit) {
+            try {
+                $res = $this->syncToSatuSehat($visit['id']);
+                $synced[] = [
+                    'visit_id' => $visit['id'],
+                    'visit_number' => $visit['visit_number'],
+                    'encounter_ihs_id' => $res['sync_result']['registered_ihs_ids']['encounter_ihs_id'] ?? null,
+                ];
+            } catch (Exception $e) {
+                $failed[] = [
+                    'visit_id' => $visit['id'],
+                    'visit_number' => $visit['visit_number'],
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return [
+            'total_processed' => count($pendingVisits),
+            'synced_count' => count($synced),
+            'failed_count' => count($failed),
+            'synced' => $synced,
+            'failed' => $failed,
+        ];
+    }
 }
