@@ -12,12 +12,13 @@ Aplikasi **SIMRS Rawat Jalan Terintegrasi** telah diselesaikan 100% secara utuh,
 
 | Perintah | Deskripsi | Hasil / Output |
 |---|---|---|
-| `make simrs-demo` | **Interactive Terminal Control Center & Menu** | Menu CLI interaktif untuk menjalankan pengujian, simulasi, dan inspeksi data. |
-| `make simrs-ci` | **Full Production CI/CD Pipeline (174 Checkpoints)** | Menjalankan Health Check (12) + DR (7) + 134 Test Unit/Integrasi + 21 E2E Stages (**100% PASS**). |
+| `make simrs-demo` | **Interactive Terminal Control Center & Menu** | Menu CLI interaktif 15 opsi untuk menjalankan pengujian, simulasi, dan inspeksi data. |
+| `make simrs-ci` | **Full Production CI/CD Pipeline (194 Checkpoints)** | Menjalankan Health Check (12) + DR (7) + 154 Test Unit/Integrasi + 21 E2E Stages (**100% PASS**). |
 | `make simrs-health` | **System Health & Integrity Diagnostics** | 12 Monitor kesehatan engine, skema 31 tabel, volumetrik, dan isolasi read-only. |
 | `make simrs-dr-test` | **Disaster Recovery & Snapshot Integrity** | 7 Pengujian snapshot pg_dump, integritas skema, dan validasi RPO = 0 / RTO < 5m. |
+| `make simrs-chaos` | **Chaos Engineering & Resilience Test Suite** | 11 Skenario resiliensi sistem (ACID rollback, burst antrean, anti-stok minus, replay attack). |
 | `make simrs-e2e` | **Master Acceptance Test E2E (21 Tahapan)** | Menguji alur lengkap dari pendaftaran s/d SATUSEHAT FHIR R4. |
-| `make simrs-test` | **Full Automated Test Suite (134 Tests)** | 54 Core + 28 FHIR + 14 Reports + 13 Audit + 14 Adjustments + 11 Node (**100% PASS**). |
+| `make simrs-test` | **Full Automated Test Suite (154 Tests)** | 54 Core + 37 FHIR & Hub + 14 Reports + 13 Audit + 14 Adjustments + 11 Chaos + 11 Node (**100% PASS**). |
 | `make simrs-adjustments-test` | **Uji Penyesuaian Finansial (Kasus Kritis 4)** | 14 skenario mitigasi perubahan tindakan pasca-invoice tanpa merusak snapshot. |
 | `make simrs-export` | **Ekspor Dataset SatuData Kemenkes RI** | Ekspor rekam medis lengkap format JSON standar SatuData + SHA-256 manifest. |
 | `make simrs-reports-test` | **Uji Laporan Klinis & RL 5.3 Kemenkes** | 14 skenario pengujian 10 besar penyakit morbiditas & rekonsiliasi kasir. |
@@ -47,6 +48,9 @@ Kata Sandi (*Default Password*) untuk seluruh akun pengujian: `Password123!`
 ### URL Layanan:
 - **Client Frontend SPA (React):** `http://localhost:5173`
 - **Layar TV Antrean Publik:** `http://localhost:5173/tv-queue`
+- **SATUSEHAT Bridging Hub & Monitoring:** `http://localhost:5173/satusehat`
+- **Laporan Kemenkes RL 5.3 & Rekonsiliasi:** `http://localhost:5173/reports`
+- **Audit Trail Permenkes 24/2022:** `http://localhost:5173/audit-logs`
 - **Interactive Swagger UI API Docs:** `http://127.0.0.1:8080/docs/`
 - **Core Backend REST API (Yii2):** `http://127.0.0.1:8080/api/v1`
 - **Supporting Backend Gateway (Node.js):** `http://127.0.0.1:3001/api/v1`
