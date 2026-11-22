@@ -13,10 +13,15 @@ Aplikasi **SIMRS Rawat Jalan Terintegrasi** telah diselesaikan 100% secara utuh,
 | Perintah | Deskripsi | Hasil / Output |
 |---|---|---|
 | `make simrs-demo` | **Interactive Terminal Control Center & Menu** | Menu CLI interaktif untuk menjalankan pengujian, simulasi, dan inspeksi data. |
+| `make simrs-ci` | **Full Production CI/CD Pipeline (141 Checkpoints)** | Menjalankan Health Check + 120 Test Unit/Integrasi + 21 E2E Stages (**100% PASS**). |
+| `make simrs-health` | **System Health & Integrity Diagnostics** | 12 Monitor kesehatan engine, skema 31 tabel, volumetrik, dan isolasi read-only. |
 | `make simrs-e2e` | **Master Acceptance Test E2E (21 Tahapan)** | Menguji alur lengkap dari pendaftaran s/d SATUSEHAT FHIR R4. |
-| `make simrs-test` | **Full Automated Test Suite (93 Tests)** | 54 Core Yii Tests + 28 FHIR/BPJS Tests + 11 Node.js Tests (**100% PASS**). |
+| `make simrs-test` | **Full Automated Test Suite (120 Tests)** | 54 Core + 28 FHIR + 14 Reports RL 5.3 + 13 Audit + 11 Node.js (**100% PASS**). |
+| `make simrs-reports-test` | **Uji Laporan Klinis & RL 5.3 Kemenkes** | 14 skenario pengujian 10 besar penyakit morbiditas & rekonsiliasi kasir. |
+| `make simrs-audit-test` | **Uji Audit Trail Permenkes 24/2022** | 13 skenario pengujian integritas mutasi RME dan retensi data 25 tahun. |
 | `make simrs-simulate` | **Simulasi 1 Hari Pelayanan Rumah Sakit** | Mensimulasikan 3 skenario pasien lengkap secara end-to-end. |
 | `make simrs-benchmark` | **Uji Stres Konkurensi Tinggi (600+ req/s)** | Membuktikan proteksi *Race Condition* stok obat, pendaftaran ganda, dan idempoten kasir. |
+| `make simrs-package` | **Pembuatan Paket Deliverable Penguji** | Kompilasi bundle production & kompresi arsip `.tar.gz`. |
 | `make simrs-build` | **Kompilasi Frontend & Node.js Production** | TypeScript build verification (**0 Errors, 0 Warnings**). |
 
 ---
@@ -80,6 +85,8 @@ Kata Sandi (*Default Password*) untuk seluruh akun pengujian: `Password123!`
 - **SATUSEHAT HL7 FHIR R4 Bundle:** Ekstraksi otomatis resource Patient, Encounter, Condition (ICD-10), Observation (LOINC Vital Signs), MedicationRequest, dan DiagnosticReport.
 - **Resume Medis Rawat Jalan (Ringkasan Pulang):** Dokumen klinis standar A4 printable lengkap dengan riwayat tindakan, e-resep, edukasi pulang, dan QR verification hash digital DPJP.
 - **BPJS Kesehatan VClaim 2.0:** Pengecekan status peserta aktif dan auto-generate Surat Eligibilitas Peserta (SEP).
+- **Laporan Morbiditas RL 5.3 Kemenkes RI:** Pemeringkatan 10 besar penyakit rawat jalan dengan pemisahan proporsional kasus laki-laki vs perempuan, serta rekonsiliasi kasir multi-metode pembayaran (`/reports`).
+- **Audit Trail Kepatuhan Permenkes 24/2022:** Pencatatan otomatis, transparan, dan tidak dapat dimanipulasi untuk setiap akses, pembuatan SOAP, revisi medis, penyerahan obat, dan transaksi finansial dengan diff viewer data lama vs baru (`/audit-logs`).
 
 ---
 

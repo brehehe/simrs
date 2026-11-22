@@ -118,6 +118,15 @@ class RegistrationService
                 ':reg_by' => $registeredBy,
             ]);
 
+            // Audit Trail Kepatuhan Permenkes 24/2022
+            (new AuditService())->log('visits', $visit['id'], 'INSERT', null, [
+                'visit_number' => $visitNumber,
+                'patient_id' => $patientId,
+                'polyclinic_id' => $polyclinicId,
+                'queue_display' => $queueDisplay,
+                'status' => 'WAITING',
+            ], $registeredBy);
+
             Database::commit();
 
             return [

@@ -30,16 +30,19 @@ show_menu() {
     echo -e "${BOLD}PILIH MENU OPERASIONAL / PENGUJIAN:${NC}"
     echo ""
     echo -e "  ${GREEN}1)${NC} 🧪 Jalankan Master Acceptance Test E2E (${BOLD}21 Tahapan Alur Rumah Sakit${NC})"
-    echo -e "  ${GREEN}2)${NC} 📊 Jalankan Full Automated Test Suite (${BOLD}93+ Unit & Integration Tests${NC})"
-    echo -e "  ${GREEN}3)${NC} 🏥 Jalankan Simulasi 1 Hari Operasional RS (${BOLD}3 Pasien Alur Penuh Selesai${NC})"
-    echo -e "  ${GREEN}4)${NC} ⚡ Jalankan Uji Stres Konkurensi & Benchmark (${BOLD}600+ req/s Multi-Thread${NC})"
-    echo -e "  ${GREEN}5)${NC} 📦 Inspeksi Live Data, Total Kunjungan & Stok Obat Real-time"
-    echo -e "  ${GREEN}6)${NC} 🔑 Tampilkan Kredensial Pengujian (Cheat Sheet 6 Role & Akun)"
-    echo -e "  ${GREEN}7)${NC} 🌐 Buka Layanan Web di Browser (SPA, Display TV Antrean, Swagger UI)"
-    echo -e "  ${GREEN}8)${NC} 🚪 Keluar"
+    echo -e "  ${GREEN}2)${NC} 📊 Jalankan Full Automated Test Suite (${BOLD}120 Unit & Integration Tests${NC})"
+    echo -e "  ${GREEN}3)${NC} 🩺 Jalankan System Health Check & Integrity Diagnostics (${BOLD}12 Monitors 100% OK${NC})"
+    echo -e "  ${GREEN}4)${NC} 🛡️  Jalankan Uji Audit Trail Permenkes 24/2022 (${BOLD}13 Kepatuhan RME Tests${NC})"
+    echo -e "  ${GREEN}5)${NC} 🏥 Jalankan Simulasi 1 Hari Operasional RS (${BOLD}3 Pasien Alur Penuh Selesai${NC})"
+    echo -e "  ${GREEN}6)${NC} ⚡ Jalankan Uji Stres Konkurensi & Benchmark (${BOLD}600+ req/s Multi-Thread${NC})"
+    echo -e "  ${GREEN}7)${NC} 📦 Inspeksi Live Data, Total Kunjungan & Stok Obat Real-time"
+    echo -e "  ${GREEN}8)${NC} 🔑 Tampilkan Kredensial Pengujian (Cheat Sheet 6 Role & Akun)"
+    echo -e "  ${GREEN}9)${NC} 🌐 Buka Layanan Web di Browser (SPA, Display TV Antrean, Swagger UI)"
+    echo -e "  ${GREEN}10)${NC} 🎁 Buat Arsip Paket Deliverable (.tar.gz) Penguji"
+    echo -e "  ${GREEN}11)${NC} 🚪 Keluar"
     echo ""
     echo -e "${BLUE}--------------------------------------------------------------------------------${NC}"
-    read -p "Masukkan pilihan [1-8]: " choice
+    read -p "Masukkan pilihan [1-11]: " choice
 }
 
 while true; do
@@ -59,17 +62,29 @@ while true; do
             ;;
         3)
             clear
-            php scripts/simulate_day.php
+            php scripts/system_health_check.php
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
         4)
             clear
-            php scripts/benchmark_concurrency.php
+            php tests/audit_compliance_test.php
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
         5)
+            clear
+            php scripts/simulate_day.php
+            echo ""
+            read -p "Tekan [Enter] untuk kembali ke menu..."
+            ;;
+        6)
+            clear
+            php scripts/benchmark_concurrency.php
+            echo ""
+            read -p "Tekan [Enter] untuk kembali ke menu..."
+            ;;
+        7)
             clear
             echo -e "${CYAN}=== STATISTIK OPERASIONAL SIMRS REAL-TIME ===${NC}\n"
             PGPASSWORD='SimrsCoreSecret2026!' psql -h 127.0.0.1 -U simrs_core -d simrs_db -c "
@@ -80,6 +95,8 @@ while true; do
                 SELECT 'Kunjungan Status COMPLETED', count(*)::text FROM visits WHERE status = 'COMPLETED'
                 UNION ALL
                 SELECT 'Total Pendapatan Terbayar', 'Rp ' || to_char(COALESCE(sum(amount), 0), 'FM999,999,999,999') FROM payments
+                UNION ALL
+                SELECT 'Total Log Mutasi Audit (Permenkes 24/2022)', count(*)::text FROM audit_logs
                 UNION ALL
                 SELECT 'Total Log Transmisi SATUSEHAT', count(*)::text FROM satusehat_logs;
             "
@@ -93,7 +110,7 @@ while true; do
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
-        6)
+        8)
             clear
             echo -e "${CYAN}=== KREDENSIAL PENGUJIAN AKUN ROLE SIMRS ===${NC}\n"
             echo -e "Kata Sandi Default Seluruh Akun: ${BOLD}${YELLOW}Password123!${NC}\n"
@@ -116,7 +133,7 @@ while true; do
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
-        7)
+        9)
             echo -e "\n${GREEN}Membuka tautan peramban...${NC}"
             if command -v open &> /dev/null; then
                 open "http://localhost:5173"
@@ -127,7 +144,14 @@ while true; do
             fi
             sleep 1
             ;;
-        8)
+        10)
+            clear
+            echo -e "${CYAN}=== MEMBUAT PAKET DELIVERABLE LENGKAP UNTUK PENGUJI ===${NC}\n"
+            make simrs-package
+            echo ""
+            read -p "Tekan [Enter] untuk kembali ke menu..."
+            ;;
+        11)
             echo -e "\n${GREEN}Terima kasih telah menggunakan sistem SIMRS PT Inova Medika Solusindo!${NC}\n"
             exit 0
             ;;

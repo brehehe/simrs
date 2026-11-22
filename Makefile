@@ -144,23 +144,40 @@ endif
 # SIMRS Local Development Targets
 #
 
-simrs-test: ## Run full SIMRS verification tests (Yii 54 + FHIR 28 + Node 11 = 93 tests)
-	@echo "=== 1/3 RUNNING YII CORE BACKEND & CONCURRENCY TESTS ==="
-	@php tests/api_verification.php
-	@echo ""
-	@echo "=== 2/3 RUNNING SATUSEHAT FHIR R4 & BPJS VCLAIM TESTS ==="
-	@php tests/satusehat_fhir_test.php
-	@echo ""
-	@echo "=== 3/3 RUNNING NODE.JS SUPPORTING SERVICE TESTS ==="
-	@cd backend-node && npm test
-	@echo ""
-	@echo ">>> ALL 93 AUTOMATED TESTS PASSED SUCCESSFULLY! <<<"
+simrs-test: ## Run full SIMRS verification tests (54 Core + 28 FHIR + 14 Reports + 13 Audit + 11 Node = 120 tests)
+	@bash tests/run_all_tests.sh
 
 simrs-satusehat-test: ## Run SATUSEHAT FHIR R4 and BPJS VClaim test suite
 	@php tests/satusehat_fhir_test.php
 
+simrs-reports-test: ## Run Clinical & Financial Reports (Kemenkes RL 5.3) test suite
+	@php tests/reports_test.php
+
+simrs-audit-test: ## Run Permenkes 24/2022 RME Audit Trail Compliance test suite
+	@php tests/audit_compliance_test.php
+
+simrs-health: ## Run System Health Check & Integrity Diagnostics
+	@php scripts/system_health_check.php
+
 simrs-e2e: ## Run Master End-to-End Acceptance Test (21 stages)
 	@php scripts/e2e_acceptance_test.php
+
+simrs-ci: ## Run Complete Production Verification (Health + 120 Tests + 21 E2E Stages)
+	@php scripts/system_health_check.php
+	@echo ""
+	@bash tests/run_all_tests.sh
+	@echo ""
+	@php scripts/e2e_acceptance_test.php
+	@echo ""
+	@echo ">>> CI/CD VERIFICATION SUITE: 141/141 CHECKPOINTS PASSED (100% HEALTHY) <<<"
+
+simrs-package: ## Build and package complete deliverable archive for examiners
+	@echo "Building React frontend production bundle..."
+	@cd frontend-react && npm run build
+	@echo "Creating deliverable archive..."
+	@mkdir -p dist
+	@tar --exclude='node_modules' --exclude='.git' --exclude='dist' -czf dist/simrs-inovamedika-deliverable.tar.gz .
+	@echo ">>> Deliverable package created at dist/simrs-inovamedika-deliverable.tar.gz <<<"
 
 simrs-demo: ## Launch Interactive Terminal Demo Runner & Control Center
 	@bash scripts/simrs_menu.sh

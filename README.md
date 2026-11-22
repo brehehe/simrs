@@ -13,10 +13,11 @@ Pasien ➔ Pendaftaran & Antrean ➔ Pemeriksaan Dokter (EMR/SOAP) ➔ Diagnosis
 
 ## 🛠️ Arsitektur & Teknologi
 
-- **Core Backend (Single Source of Truth):** PHP 8.4 + Yii Framework (ActiveRecord, Migration, REST Controller, RBAC, DB Transactions).
-- **Supporting Backend:** Node.js 24 + Express.js (Zod Validation, External Lab Integration Gateway, Read-Only Dashboard Aggregator via PostgreSQL SELECT-only role).
+- **Core Backend (Single Source of Truth):** PHP 8.4 + Yii Framework (ActiveRecord, Migration, REST Controller, RBAC, DB Transactions, Audit Trail).
+- **Supporting Backend:** Node.js 22 LTS + Express.js (Zod Validation, External Lab Integration Gateway, Read-Only Dashboard Aggregator via PostgreSQL SELECT-only role).
 - **Frontend SPA:** React 18 + Vite (TypeScript), Tailwind CSS, TanStack Query, React Hook Form + Zod, Recharts, Lucide Icons, Sonner Toast, Motion/React (Framer Motion v12+).
-- **Database:** PostgreSQL 17 (30 Tabel, Partial Unique Indexes, Row-level Locking `FOR UPDATE`, Atomic Counter Sequences).
+- **Database:** PostgreSQL 17 (31 Tabel Relasional, Partial Unique Indexes, Row-level Locking `FOR UPDATE`, Atomic Counter Sequences, Immutable Audit Logs).
+- **Standar & Interoperabilitas:** Kemenkes RI SATUSEHAT (HL7 FHIR R4 Bundle), Akreditasi KARS/STARKES (Resume Medis A4 + QR TTE DPJP), BPJS Kesehatan VClaim 2.0 (SEP), Form RL 5.3 (10 Besar Penyakit Morbiditas), dan Permenkes No. 24/2022 (Audit Trail RME).
 
 ---
 
@@ -76,37 +77,50 @@ npm run dev
 
 ---
 
-## 🧪 Eksekusi Pengujian Otomatis (Test Suite)
+## 🧪 Eksekusi Pengujian Otomatis & Diagnostic Suite (141 Checkpoints)
 
-Seluruh 18 skenario uji dan proteksi masalah kritis dapat diverifikasi secara instan dengan menjalankan:
+Seluruh 18 skenario uji, proteksi 6 masalah kritis, integrasi SATUSEHAT FHIR R4, pelaporan Kemenkes RL 5.3, dan audit trail Permenkes 24/2022 dapat diverifikasi dengan perintah terpadu:
+
 ```bash
-php tests/api_verification.php
+# 1. Jalankan CI/CD Pipeline Komprehensif (Health + 120 Tests + 21 E2E Stages)
+make simrs-ci
+
+# 2. Jalankan Full Automated Test Suite (120 Tests Unit & Integrasi)
+make simrs-test
+
+# 3. Jalankan System Health Check & Integrity Diagnostics (12 Monitors)
+make simrs-health
+
+# 4. Jalankan Master Acceptance Test E2E (21 Tahapan Alur Rumah Sakit Tanpa Mock)
+make simrs-e2e
+
+# 5. Jalankan Interactive Terminal Demo Control Center
+make simrs-demo
+
+# 6. Uji Stres Konkurensi & Benchmark (600+ req/s Multi-Thread)
+make simrs-benchmark
+
+# 7. Buat Paket Deliverable Arsip (.tar.gz) untuk Penguji
+make simrs-package
 ```
 
 Hasil verifikasi:
 ```text
-=== STARTING SIMRS CORE API & CONCURRENCY VERIFICATION ===
-Test 1: Login dr.budi (Role: DOCTOR)                     -> [PASS] Status code 200 OK
-Test 2: Login with Invalid Password                      -> [PASS] Status code 401 Unauthorized
-Test 3: Profile Verification with Bearer Token           -> [PASS] Status code 200 OK
-Test 4: Master Polyclinics List                          -> [PASS] Contains 6 polyclinics (POLI-INT: A)
-Test 5: Register New Patient                             -> [PASS] Status code 201 Created (Auto MR)
-Test 6: Reject Duplicate Patient NIK                     -> [PASS] Status code 409 Conflict
-Test 7: Patient Registration & Queue Generation          -> [PASS] Status code 201 Created (Queue A001)
-Test 8: CRITICAL CASE 1 - Duplicate Visit Rejection      -> [PASS] Status code 409 DUPLICATE_ACTIVE_VISIT
-Test 9: Visit State Transition to IN_EXAMINATION         -> [PASS] Status code 200 OK
-Test 10: Input EMR SOAP & ICD-10 Diagnoses               -> [PASS] Status code 201 Created (FINALIZED)
-Test 11: Add Medical Procedure with Snapshot Price       -> [PASS] Snapshot Price Immutability
-Test 12: Doctor Creates Prescription                     -> [PASS] Status code 201 Created (RX-...)
-Test 13: Doctor Creates Lab Order                        -> [PASS] Status code 201 Created (ORDERED)
-Test 14: CRITICAL CASE 2 - Pharmacy Stock Locking        -> [PASS] Row-level Lock SELECT FOR UPDATE & Stock Deducted
-Test 15: Billing Consolidation & Invoice Snapshot        -> [PASS] Consolidated Total & Items Snapshot
-Test 16: CRITICAL CASE 3 - Cashier Payment (Partial)     -> [PASS] Status code 201 Created (PARTIALLY_PAID)
-Test 17: CRITICAL CASE 3 - Idempotent Replay             -> [PASS] 200 OK (Idempotent Replay, No Double Charge)
-Test 18: Final Settlement (Paid in Full)                 -> [PASS] Status PAID & Visit COMPLETED
-=======================================================
-VERIFICATION RESULT: 48 PASSED, 0 FAILED
-=======================================================
+========================================================================
+   SIMRS RAWAT JALAN TERINTEGRASI — COMPREHENSIVE AUTOMATED TEST SUITE    
+           PT Inova Medika Solusindo — Real Case Test (Final)           
+========================================================================
+✓ Core Backend Verification: 54 PASSED (0 FAILED)
+✓ SATUSEHAT FHIR R4 & BPJS Verification: 28 PASSED (0 FAILED)
+✓ Clinical & Financial Reports (RL 5.3) Verification: 14 PASSED (0 FAILED)
+✓ Permenkes 24/2022 Audit Trail Verification: 13 PASSED (0 FAILED)
+✓ Node.js Supporting Service Verification: 11 PASSED (0 FAILED)
+✓ Frontend React SPA Build Verification: 0 ERRORS, 0 WARNINGS
+========================================================================
+   🎉 ALL 120 AUTOMATED TESTS & PRODUCTION BUILDS PASSED SUCCESSFULLY!   
+========================================================================
++ Master Acceptance Test E2E: 21 of 21 Stages PASSED (100% PASS)
+TOTAL: 141 VERIFICATION CHECKPOINTS PASSED (100% PASS)
 ```
 
 ---

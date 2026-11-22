@@ -448,6 +448,117 @@ paths:
         '201':
           description: SEP Rawat Jalan berhasil diterbitkan (format 0101R001...)
 
+  # ---------------------------------------------------------------------------
+  # LAPORAN KLINIS, FINANSIAL & KEMENKES RI (RL 5.3)
+  # ---------------------------------------------------------------------------
+  /reports/top-diagnoses:
+    get:
+      tags: [Laporan & Rekonsiliasi]
+      summary: Laporan 10 Besar Penyakit Rawat Jalan (Standar Form RL 5.3 Kemenkes RI)
+      parameters:
+        - in: query
+          name: start_date
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: end_date
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Data 10 besar penyakit dan pemisahan gender berhasil diambil
+
+  /reports/financial-reconciliation:
+    get:
+      tags: [Laporan & Rekonsiliasi]
+      summary: Laporan Rekonsiliasi Finansial Kasir & Pembayaran
+      parameters:
+        - in: query
+          name: start_date
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: end_date
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Data rekonsiliasi finansial kasir berhasil diambil
+
+  /reports/visit-summary:
+    get:
+      tags: [Laporan & Rekonsiliasi]
+      summary: Ringkasan Distribusi Kunjungan per Poli dan Beban Kerja DPJP
+      responses:
+        '200':
+          description: Data ringkasan kunjungan rawat jalan berhasil diambil
+
+  /reports/medicine-usage:
+    get:
+      tags: [Laporan & Rekonsiliasi]
+      summary: Laporan Pemakaian & Mutasi Obat Apotek
+      responses:
+        '200':
+          description: Data mutasi stok obat berhasil diambil
+
+  # ---------------------------------------------------------------------------
+  # AUDIT TRAIL KEPATUHAN RME (PERMENKES NO. 24 TAHUN 2022)
+  # ---------------------------------------------------------------------------
+  /audit/logs:
+    get:
+      tags: [Audit Trail Permenkes 24/2022]
+      summary: Mengambil Daftar Riwayat Log Audit Sistem (Immutable)
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        - in: query
+          name: table_name
+          schema:
+            type: string
+        - in: query
+          name: action
+          schema:
+            type: string
+            enum: [INSERT, UPDATE, DELETE]
+      responses:
+        '200':
+          description: Daftar audit log sistem berhasil diambil
+
+  /audit/patients/{patientId}:
+    get:
+      tags: [Audit Trail Permenkes 24/2022]
+      summary: Jejak Audit Lengkap Pasien Kepatuhan Permenkes 24/2022 (Pasal 25-26)
+      parameters:
+        - in: path
+          name: patientId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Jejak audit pasien komprehensif berhasil diambil
+
+  /audit/compliance-summary:
+    get:
+      tags: [Audit Trail Permenkes 24/2022]
+      summary: Ringkasan Metrik Kepatuhan Regulasi RME Nasional (UU Kesehatan)
+      responses:
+        '200':
+          description: Ringkasan status kepatuhan RME berhasil diambil
+
 components:
   securitySchemes:
     bearerAuth:

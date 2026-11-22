@@ -17,6 +17,7 @@ import { LabOrdersPage } from '../pages/LabOrdersPage';
 import { PharmacyPage } from '../pages/PharmacyPage';
 import { CashierBillingPage } from '../pages/CashierBillingPage';
 import { ReportsPage } from '../pages/ReportsPage';
+import { AuditTrailPage } from '../pages/AuditTrailPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
@@ -123,7 +124,7 @@ export const router = createBrowserRouter([
           { path: '/procedures', element: <DoctorExaminationPage /> },
           { path: '/medicines', element: <PharmacyPage /> },
           { path: '/users', element: <DashboardPage /> },
-          { path: '/audit-logs', element: <DashboardPage /> },
+          { path: '/audit-logs', element: <AuditTrailPage /> },
 
           {
             path: '/forbidden',

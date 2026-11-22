@@ -339,6 +339,16 @@ class BillingService
                 ", [':vid' => $invoice['visit_id']]);
             }
 
+            // Audit Trail Kepatuhan Permenkes 24/2022
+            (new AuditService())->log('payments', $payment['id'], 'INSERT', null, [
+                'invoice_id' => $invoiceId,
+                'invoice_number' => $invoice['invoice_number'],
+                'amount' => $amount,
+                'payment_method' => $method,
+                'idempotency_key' => $idempotencyKey,
+                'invoice_status' => $newStatus,
+            ], $cashierUserId);
+
             Database::commit();
 
             return [

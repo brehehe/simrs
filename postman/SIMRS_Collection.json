@@ -225,6 +225,109 @@
           }
         }
       ]
+    },
+    {
+      "name": "8. SATUSEHAT (FHIR R4) & BPJS VClaim",
+      "item": [
+        {
+          "name": "Get SATUSEHAT FHIR R4 Bundle",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/fhir-bundle", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits", "{{visit_id}}", "fhir-bundle"] }
+          }
+        },
+        {
+          "name": "Sync Visit to SATUSEHAT",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/satusehat-sync", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits", "{{visit_id}}", "satusehat-sync"] }
+          }
+        },
+        {
+          "name": "Get Ringkasan Pulang (Resume Medis)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/resume-medis", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits", "{{visit_id}}", "resume-medis"] }
+          }
+        },
+        {
+          "name": "BPJS VClaim Cek Peserta NIK",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/bpjs/peserta/320101199001010001", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "bpjs", "peserta", "320101199001010001"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Clinical & Financial Reports (Kemenkes RL 5.3)",
+      "item": [
+        {
+          "name": "Laporan 10 Besar Penyakit (RL 5.3 Kemenkes RI)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/reports/top-diagnoses?limit=10", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "reports", "top-diagnoses"], "query": [{"key": "limit", "value": "10"}] }
+          }
+        },
+        {
+          "name": "Laporan Rekonsiliasi Finansial Kasir",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/reports/financial-reconciliation", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "reports", "financial-reconciliation"] }
+          }
+        },
+        {
+          "name": "Ringkasan Kunjungan Rawat Jalan",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/reports/visit-summary", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "reports", "visit-summary"] }
+          }
+        },
+        {
+          "name": "Laporan Pemakaian Obat Apotek",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/reports/medicine-usage", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "reports", "medicine-usage"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Permenkes 24/2022 Audit Trail",
+      "item": [
+        {
+          "name": "Get System Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/audit/logs?limit=50", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "audit", "logs"], "query": [{"key": "limit", "value": "50"}] }
+          }
+        },
+        {
+          "name": "Get Patient Audit Trail (Permenkes 24/2022)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/audit/patients/{{patient_id}}", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "audit", "patients", "{{patient_id}}"] }
+          }
+        },
+        {
+          "name": "Get RME Compliance Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/audit/compliance-summary", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "audit", "compliance-summary"] }
+          }
+        }
+      ]
     }
   ]
 }

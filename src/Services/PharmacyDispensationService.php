@@ -123,6 +123,15 @@ class PharmacyDispensationService
                 WHERE id = :rxid
             ", [':rxid' => $prescriptionId]);
 
+            // Audit Trail Kepatuhan Permenkes 24/2022
+            (new AuditService())->log('prescriptions', $prescriptionId, 'UPDATE', [
+                'status' => $rx['status']
+            ], [
+                'status' => 'DISPENSED',
+                'prescription_number' => $rx['prescription_number'],
+                'items_count' => count($items),
+            ], $dispensedByUserId);
+
             // 6. Transisi Status Kunjungan Pasien ke READY_FOR_BILLING
             Database::execute("
                 UPDATE visits 

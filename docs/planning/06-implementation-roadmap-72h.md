@@ -90,7 +90,32 @@ Pengembangan dibagi ke dalam 6 fase berdurasi masing-masing 12 jam untuk memasti
 - [x] Integrasi BPJS Kesehatan VClaim 2.0 Stubs (`BpjsService.php`, Cek Peserta NIK & Auto-generate SEP `0101R001...`).
 - [x] Komponen UI SATUSEHAT Modal (`SatuSehatModal.tsx`) dengan JSON Viewer & 1-klik Sync.
 - [x] Integrasi Docker Multi-Container Optimization (`Dockerfile` + `pdo_pgsql`, `docker-compose.yml`, `docs/DOCKER_DEPLOYMENT.md`).
-- [x] Total 93 Skenario Pengujian Terotomasi (54 Yii Core + 28 FHIR/BPJS + 11 Node.js) 100% Passed.
+
+#### 🎯 FASE 8: Master E2E Acceptance Test (21 Tahap), Interactive Terminal Control Center, & Swagger UI
+- [x] Master End-to-End Acceptance Test (`scripts/e2e_acceptance_test.php`, `make simrs-e2e`): 21 dari 21 tahapan alur rumah sakit lulus 100% tanpa mock.
+- [x] Terminal Demo Runner & Control Center (`scripts/simrs_menu.sh`, `make simrs-demo`).
+- [x] Embedded Standalone Swagger UI API Explorer (`public/docs/index.html` pada `http://127.0.0.1:8080/docs/`).
+- [x] Dokumen Panduan Evaluasi Penguji Komprehensif (`docs/EXAMINER_EVALUATION_GUIDE.md`).
+
+#### 📊 FASE 9: Laporan Klinis & Rekonsiliasi Finansial (Standar Kemenkes RI Form RL 5.3)
+- [x] Service Pelaporan Klinis & Finansial (`src/Services/ReportService.php` & `ReportController.php`):
+  - Laporan 10 Besar Penyakit Morbiditas Rawat Jalan (RL 5.3 Kemenkes RI) dengan pemilahan kasus Laki-laki vs Perempuan dan ranking diagnosa ICD-10 primer.
+  - Laporan Rekonsiliasi Kasir & Finansial: rincian nominal per metode bayar (CASH, QRIS, DEBIT_CARD, BANK_TRANSFER).
+  - Laporan Distribusi Kunjungan Poliklinik & Beban Kerja Dokter DPJP.
+  - Laporan Pemakaian & Mutasi Obat Farmasi.
+- [x] Frontend UI Laporan & Rekonsiliasi (`frontend-react/src/pages/ReportsPage.tsx`) dengan Recharts visual ranking dan filter tanggal cepat (Hari Ini, 7 Hari, Bulan Ini).
+- [x] 14 Skenario Pengujian Laporan Terotomasi (`tests/reports_test.php`) 100% Passed.
+
+#### 🛡️ FASE 10: RME Permenkes 24/2022 Audit Trail Compliance, System Health Diagnostics, & Final Deliverable Package
+- [x] Service Audit Trail Kepatuhan RME Permenkes No. 24/2022 (`src/Services/AuditService.php` & `AuditController.php`):
+  - Pencatatan otomatis & immutable setiap mutasi SOAP, resep farmasi, pembayaran kasir, dan akses rekam medis.
+  - Agregasi jejak audit pasien longitudinal multi-domain (Registrasi, EMR, Farmasi, Billing).
+  - Ringkasan kepatuhan regulasi nasional (Compliance Summary & Statuta Retensi 25 Tahun).
+- [x] Frontend UI Audit Trail (`frontend-react/src/pages/AuditTrailPage.tsx`) dengan filter domain, filter aksi, dan viewer diff JSON data lama vs data baru.
+- [x] 13 Skenario Pengujian Audit Trail Kepatuhan Permenkes (`tests/audit_compliance_test.php`) 100% Passed.
+- [x] System Health Check & Integrity Diagnostics CLI (`scripts/system_health_check.php`, `make simrs-health`): 12 monitor kesehatan sistem 100% Healthy.
+- [x] Total 120 Pengujian Terotomasi Terintegrasi (`make simrs-test`) + 21 E2E Stages (`make simrs-e2e`) = **141 Verification Checkpoints Passed (100% PASS)**.
+- [x] Packaging deliverable otomatis (`make simrs-package`) dan target CI/CD terpadu (`make simrs-ci`).
 
 ---
 

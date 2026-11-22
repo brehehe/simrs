@@ -12,6 +12,7 @@ use App\Controllers\InternalApiController;
 use App\Controllers\SatuSehatController;
 use App\Controllers\BpjsController;
 use App\Controllers\ReportController;
+use App\Controllers\AuditController;
 use App\Controllers\CorsController;
 use App\Web;
 use Yiisoft\Router\Group;
@@ -181,5 +182,16 @@ return [
             Route::get('/api/v1/reports/medicine-usage')
                 ->action([ReportController::class, 'getMedicineUsage'])
                 ->name('api.reports.medicine_usage'),
+
+            // 11. Permenkes 24/2022 Audit Trail Endpoints
+            Route::get('/api/v1/audit/logs')
+                ->action([AuditController::class, 'getLogs'])
+                ->name('api.audit.logs'),
+            Route::get('/api/v1/audit/patients/{patientId}')
+                ->action([AuditController::class, 'getPatientAuditTrail'])
+                ->name('api.audit.patient_trail'),
+            Route::get('/api/v1/audit/compliance-summary')
+                ->action([AuditController::class, 'getComplianceSummary'])
+                ->name('api.audit.compliance_summary'),
         ),
 ];

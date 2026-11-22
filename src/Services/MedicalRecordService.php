@@ -82,6 +82,15 @@ class MedicalRecordService
                     ':pe' => $data['physical_examination'] ?? null,
                     ':notes' => $data['doctor_notes'] ?? null,
                 ]);
+
+                // Audit Trail Kepatuhan Permenkes 24/2022
+                (new AuditService())->log('medical_records', $existing['id'], 'UPDATE', $oldData, [
+                    'visit_id' => $data['visit_id'],
+                    'patient_id' => $visit['patient_id'],
+                    'chief_complaint' => $data['chief_complaint'],
+                    'revision_reason' => $data['revision_reason'] ?? 'Pembaruan data klinis berkala',
+                    'status' => 'FINALIZED',
+                ], $doctorId);
             } else {
                 // Insert baru
                 $sql = "
@@ -112,6 +121,14 @@ class MedicalRecordService
                     ':pe' => $data['physical_examination'] ?? null,
                     ':notes' => $data['doctor_notes'] ?? null,
                 ]);
+
+                // Audit Trail Kepatuhan Permenkes 24/2022
+                (new AuditService())->log('medical_records', $record['id'], 'INSERT', null, [
+                    'visit_id' => $data['visit_id'],
+                    'patient_id' => $visit['patient_id'],
+                    'chief_complaint' => $data['chief_complaint'],
+                    'status' => 'FINALIZED',
+                ], $doctorId);
             }
 
             // Simpan Diagnosis ICD-10 jika ada
