@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Controllers\AuthController;
 use App\Controllers\MasterDataController;
 use App\Controllers\VisitController;
+use App\Controllers\ClinicalController;
+use App\Controllers\PharmacyController;
+use App\Controllers\BillingController;
 use App\Controllers\CorsController;
 use App\Web;
 use Yiisoft\Router\Group;
@@ -82,5 +85,53 @@ return [
             Route::get('/api/v1/queues/today')
                 ->action([VisitController::class, 'todayQueues'])
                 ->name('api.queues.today'),
+
+            // 4. Clinical & EMR Endpoints
+            Route::post('/api/v1/medical-records')
+                ->action([ClinicalController::class, 'saveMedicalRecord'])
+                ->name('api.emr.save'),
+            Route::get('/api/v1/medical-records/visit/{visitId}')
+                ->action([ClinicalController::class, 'getMedicalRecordByVisit'])
+                ->name('api.emr.detail'),
+            Route::get('/api/v1/patients/{patientId}/history')
+                ->action([ClinicalController::class, 'getPatientHistory'])
+                ->name('api.patients.history'),
+            Route::post('/api/v1/visits/{id}/procedures')
+                ->action([ClinicalController::class, 'addProcedure'])
+                ->name('api.visits.procedures.add'),
+            Route::get('/api/v1/visits/{id}/procedures')
+                ->action([ClinicalController::class, 'getProcedures'])
+                ->name('api.visits.procedures.list'),
+            Route::post('/api/v1/prescriptions')
+                ->action([ClinicalController::class, 'createPrescription'])
+                ->name('api.prescriptions.create'),
+            Route::get('/api/v1/visits/{id}/prescriptions')
+                ->action([ClinicalController::class, 'getPrescriptions'])
+                ->name('api.visits.prescriptions.list'),
+            Route::post('/api/v1/lab-orders')
+                ->action([ClinicalController::class, 'createLabOrder'])
+                ->name('api.lab_orders.create'),
+            Route::get('/api/v1/visits/{id}/lab-orders')
+                ->action([ClinicalController::class, 'getLabOrders'])
+                ->name('api.visits.lab_orders.list'),
+
+            // 5. Pharmacy Endpoints
+            Route::post('/api/v1/prescriptions/{id}/dispense')
+                ->action([PharmacyController::class, 'dispense'])
+                ->name('api.prescriptions.dispense'),
+            Route::get('/api/v1/medicines/{id}/stock-movements')
+                ->action([PharmacyController::class, 'getStockMovements'])
+                ->name('api.medicines.stock_movements'),
+
+            // 6. Billing & Payment Endpoints
+            Route::get('/api/v1/invoices/visit/{visitId}')
+                ->action([BillingController::class, 'getInvoiceByVisit'])
+                ->name('api.invoices.detail_by_visit'),
+            Route::post('/api/v1/invoices/{id}/payments')
+                ->action([BillingController::class, 'processPayment'])
+                ->name('api.invoices.payments'),
+            Route::get('/api/v1/payments/{id}/receipt')
+                ->action([BillingController::class, 'getReceipt'])
+                ->name('api.payments.receipt'),
         ),
 ];

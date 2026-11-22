@@ -186,6 +186,230 @@ assertTest("Status code 200 OK", $res9->getStatusCode() === 200);
 assertTest("Visit status updated to IN_EXAMINATION", $data9['data']['status'] === 'IN_EXAMINATION');
 
 // -----------------------------------------------------------------------------
+// TEST 10: Clinical EMR (SOAP, Vital Signs, ICD-10 Diagnoses)
+// -----------------------------------------------------------------------------
+echo "\nTest 10: Input EMR SOAP & ICD-10 Diagnoses\n";
+$clinicalController = new \App\Controllers\ClinicalController();
+
+$diagList = json_decode((string) $masterController->getDiagnoses(new ServerRequest())->getBody(), true)['data'];
+$diag1 = $diagList[0]; // I10
+$diag2 = $diagList[1]; // E11.9
+
+$req10 = (new ServerRequest(method: 'POST', uri: '/api/v1/medical-records'))
+    ->withHeader('Authorization', 'Bearer ' . $jwtToken)
+    ->withParsedBody([
+        'visit_id' => $createdVisitId,
+        'chief_complaint' => 'Sakit kepala berdenyut dan leher terasa kaku sejak 2 hari',
+        'anamnesis' => 'Pasien memiliki riwayat tekanan darah tinggi tidak terkontrol.',
+        'systolic_bp' => 150,
+        'diastolic_bp' => 95,
+        'heart_rate' => 84,
+        'respiratory_rate' => 18,
+        'temperature' => 36.8,
+        'weight' => 70.5,
+        'height' => 165.0,
+        'physical_examination' => 'Mata: pupil isokor. Thorax: cor/pulmo dalam batas normal.',
+        'doctor_notes' => 'Hipertensi stage 2, anjurkan kurangi garam dan istirahat.',
+        'diagnoses' => [
+            ['diagnosis_id' => $diag1['id'], 'type' => 'PRIMARY', 'notes' => 'Hipertensi primer primer'],
+            ['diagnosis_id' => $diag2['id'], 'type' => 'SECONDARY', 'notes' => 'Pemeriksaan lanjutan gula darah'],
+        ],
+    ]);
+
+$res10 = $clinicalController->saveMedicalRecord($req10);
+$data10 = json_decode((string) $res10->getBody(), true);
+
+assertTest("Status code 201 Created", $res10->getStatusCode() === 201);
+assertTest("EMR record status is FINALIZED", $data10['data']['status'] === 'FINALIZED');
+
+// -----------------------------------------------------------------------------
+// TEST 11: Procedure with Snapshot Price
+// -----------------------------------------------------------------------------
+echo "\nTest 11: Add Medical Procedure with Snapshot Price\n";
+$procList = json_decode((string) $masterController->getProcedures()->getBody(), true)['data'];
+$procEkg = $procList[1]; // EKG
+
+$req11 = (new ServerRequest(method: 'POST', uri: "/api/v1/visits/{$createdVisitId}/procedures"))
+    ->withAttribute('id', $createdVisitId)
+    ->withHeader('Authorization', 'Bearer ' . $jwtToken)
+    ->withParsedBody([
+        'procedure_id' => $procEkg['id'],
+        'quantity' => 1,
+    ]);
+
+$res11 = $clinicalController->addProcedure($req11);
+$data11 = json_decode((string) $res11->getBody(), true);
+
+assertTest("Status code 201 Created", $res11->getStatusCode() === 201);
+assertTest("Snapshot price matches base price", (float) $data11['data']['snapshot_price'] === (float) $procEkg['base_price']);
+
+// -----------------------------------------------------------------------------
+// TEST 12: Prescription Ordering
+// -----------------------------------------------------------------------------
+echo "\nTest 12: Doctor Creates Prescription\n";
+$medList = json_decode((string) $masterController->getMedicines()->getBody(), true)['data'];
+$medAmlodipine = $medList[4]; // Amlodipine 10mg
+
+$req12 = (new ServerRequest(method: 'POST', uri: '/api/v1/prescriptions'))
+    ->withHeader('Authorization', 'Bearer ' . $jwtToken)
+    ->withParsedBody([
+        'visit_id' => $createdVisitId,
+        'notes' => 'Diminum 1x sehari malam hari sesudah makan',
+        'items' => [
+            [
+                'medicine_id' => $medAmlodipine['id'],
+                'dosage' => '10 mg',
+                'frequency' => '1x1 Sehari malam',
+                'quantity' => 30,
+                'instructions' => 'Rutin setiap malam',
+            ],
+        ],
+    ]);
+
+$res12 = $clinicalController->createPrescription($req12);
+$data12 = json_decode((string) $res12->getBody(), true);
+
+assertTest("Status code 201 Created", $res12->getStatusCode() === 201);
+assertTest("Prescription number generated", str_starts_with($data12['data']['prescription_number'], 'RX-'));
+assertTest("Item count is 1", count($data12['data']['items']) === 1);
+
+// -----------------------------------------------------------------------------
+// TEST 13: Lab Order Creation
+// -----------------------------------------------------------------------------
+echo "\nTest 13: Doctor Creates Lab Order\n";
+$labList = json_decode((string) $masterController->getLabTests()->getBody(), true)['data'];
+$testGds = $labList[1]; // GDS
+
+$req13 = (new ServerRequest(method: 'POST', uri: '/api/v1/lab-orders'))
+    ->withHeader('Authorization', 'Bearer ' . $jwtToken)
+    ->withParsedBody([
+        'visit_id' => $createdVisitId,
+        'clinical_notes' => 'Skrining glukosa darah sewaktu',
+        'test_ids' => [$testGds['id']],
+    ]);
+
+$res13 = $clinicalController->createLabOrder($req13);
+$data13 = json_decode((string) $res13->getBody(), true);
+
+assertTest("Status code 201 Created", $res13->getStatusCode() === 201);
+assertTest("Lab Order status is ORDERED", $data13['data']['status'] === 'ORDERED');
+
+// -----------------------------------------------------------------------------
+// TEST 14: CRITICAL CASE 2 - Pharmacy Dispense with Row-Level Lock & Stock Deduct
+// -----------------------------------------------------------------------------
+echo "\nTest 14: CRITICAL CASE 2 - Pharmacy Dispensation & Atomic Stock Deduction\n";
+$pharmacyController = new \App\Controllers\PharmacyController();
+$createdRxId = $data12['data']['id'];
+
+// Get stock before dispense
+$stockBefore = (int) \App\Common\Database::fetchOne(
+    "SELECT current_stock FROM medicine_stocks WHERE medicine_id = :id",
+    [':id' => $medAmlodipine['id']]
+)['current_stock'];
+
+$req14 = (new ServerRequest(method: 'POST', uri: "/api/v1/prescriptions/{$createdRxId}/dispense"))
+    ->withAttribute('id', $createdRxId)
+    ->withHeader('Authorization', 'Bearer ' . $jwtToken)
+    ->withParsedBody(['notes' => 'Edukasi obat telah diberikan']);
+
+$res14 = $pharmacyController->dispense($req14);
+$data14 = json_decode((string) $res14->getBody(), true);
+
+assertTest("Status code 200 OK", $res14->getStatusCode() === 200);
+assertTest("Prescription status is DISPENSED", $data14['data']['status'] === 'DISPENSED');
+
+// Check stock reduced by 30
+$stockAfter = (int) \App\Common\Database::fetchOne(
+    "SELECT current_stock FROM medicine_stocks WHERE medicine_id = :id",
+    [':id' => $medAmlodipine['id']]
+)['current_stock'];
+assertTest("Stock accurately reduced by 30", $stockAfter === ($stockBefore - 30));
+
+// -----------------------------------------------------------------------------
+// TEST 15: Invoice Generation & Consolidation
+// -----------------------------------------------------------------------------
+echo "\nTest 15: Billing Consolidation & Invoice Snapshot\n";
+$billingController = new \App\Controllers\BillingController();
+
+$req15 = (new ServerRequest(method: 'GET', uri: "/api/v1/invoices/visit/{$createdVisitId}"))
+    ->withAttribute('visitId', $createdVisitId)
+    ->withHeader('Authorization', 'Bearer ' . $jwtToken);
+
+$res15 = $billingController->getInvoiceByVisit($req15);
+$data15 = json_decode((string) $res15->getBody(), true);
+
+assertTest("Status code 200 OK", $res15->getStatusCode() === 200);
+assertTest("Invoice status is UNPAID", $data15['data']['status'] === 'UNPAID');
+assertTest("Total amount is positive", (float)$data15['data']['total_amount'] > 0);
+assertTest("Outstanding balance equals total amount", (float)$data15['data']['outstanding_balance'] === (float)$data15['data']['total_amount']);
+$createdInvoiceId = $data15['data']['id'];
+$totalBill = (float) $data15['data']['total_amount'];
+
+// -----------------------------------------------------------------------------
+// TEST 16: CRITICAL CASE 3 - Cashier Payment with Idempotency Key
+// -----------------------------------------------------------------------------
+echo "\nTest 16: CRITICAL CASE 3 - Cashier Payment (Partial)\n";
+$idempotencyKey = 'idemp-test-' . time() . '-' . rand(100, 999);
+$partialAmount = 100000.00;
+
+$req16 = (new ServerRequest(method: 'POST', uri: "/api/v1/invoices/{$createdInvoiceId}/payments"))
+    ->withAttribute('id', $createdInvoiceId)
+    ->withHeader('X-Idempotency-Key', $idempotencyKey)
+    ->withHeader('Authorization', 'Bearer ' . $jwtToken)
+    ->withParsedBody([
+        'amount' => $partialAmount,
+        'payment_method' => 'CASH',
+        'reference_no' => 'CASH-001',
+    ]);
+
+$res16 = $billingController->processPayment($req16);
+$data16 = json_decode((string) $res16->getBody(), true);
+
+assertTest("Status code 201 Created", $res16->getStatusCode() === 201);
+assertTest("Invoice status is PARTIALLY_PAID", $data16['data']['invoice_status'] === 'PARTIALLY_PAID');
+assertTest("Outstanding balance reduced by 100k", (float)$data16['data']['outstanding_balance'] === ($totalBill - $partialAmount));
+
+// -----------------------------------------------------------------------------
+// TEST 17: CRITICAL CASE 3 - Idempotent Replay on Duplicate Submit
+// -----------------------------------------------------------------------------
+echo "\nTest 17: CRITICAL CASE 3 - Idempotent Replay on Double Submit\n";
+// Send exact same request with SAME idempotency key
+$res17 = $billingController->processPayment($req16);
+$data17 = json_decode((string) $res17->getBody(), true);
+
+assertTest("Status code 200 OK (Idempotent Hit)", $res17->getStatusCode() === 200);
+assertTest("is_idempotent_replay is true", $data17['data']['is_idempotent_replay'] === true);
+assertTest("Balance remains unchanged (no double charge)", (float)$data17['data']['outstanding_balance'] === ($totalBill - $partialAmount));
+
+// -----------------------------------------------------------------------------
+// TEST 18: Final Settlement & Completion
+// -----------------------------------------------------------------------------
+echo "\nTest 18: Final Settlement (Paid in Full)\n";
+$remainingAmount = $totalBill - $partialAmount;
+$finalKey = 'idemp-final-' . time() . '-' . rand(100, 999);
+
+$req18 = (new ServerRequest(method: 'POST', uri: "/api/v1/invoices/{$createdInvoiceId}/payments"))
+    ->withAttribute('id', $createdInvoiceId)
+    ->withHeader('X-Idempotency-Key', $finalKey)
+    ->withHeader('Authorization', 'Bearer ' . $jwtToken)
+    ->withParsedBody([
+        'amount' => $remainingAmount,
+        'payment_method' => 'QRIS',
+        'reference_no' => 'QRIS-9988',
+    ]);
+
+$res18 = $billingController->processPayment($req18);
+$data18 = json_decode((string) $res18->getBody(), true);
+
+assertTest("Status code 201 Created", $res18->getStatusCode() === 201);
+assertTest("Invoice status is PAID", $data18['data']['invoice_status'] === 'PAID');
+assertTest("Outstanding balance is 0", (float)$data18['data']['outstanding_balance'] === 0.0);
+
+// Verify visit status is COMPLETED
+$visitCheck = \App\Common\Database::fetchOne("SELECT status FROM visits WHERE id = :id", [':id' => $createdVisitId]);
+assertTest("Visit status is COMPLETED", $visitCheck['status'] === 'COMPLETED');
+
+// -----------------------------------------------------------------------------
 // SUMMARY
 // -----------------------------------------------------------------------------
 echo "\n=======================================================\n";
