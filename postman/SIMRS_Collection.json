@@ -12,20 +12,52 @@
           "name": "Login (dr.budi - DOCTOR)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"dr.budi\",\n  \"password\": \"Password123!\"\n}"
             },
-            "url": { "raw": "{{base_url_yii}}/api/v1/auth/login", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "auth", "login"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/auth/login",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
           }
         },
         {
           "name": "Get Authenticated User Profile",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/auth/me", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "auth", "me"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/auth/me",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
           }
         }
       ]
@@ -37,40 +69,105 @@
           "name": "Get Polyclinics",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_yii}}/api/v1/polyclinics", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "polyclinics"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/polyclinics",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "polyclinics"
+              ]
+            }
           }
         },
         {
           "name": "Get Patients List",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_yii}}/api/v1/patients?page=1&limit=10", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "patients"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "10"}] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/patients?page=1&limit=10",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
           }
         },
         {
           "name": "Register New Patient",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nik\": \"3273019901850099\",\n  \"full_name\": \"Pasien Baru Rawat Jalan\",\n  \"birth_date\": \"1985-01-19\",\n  \"gender\": \"MALE\",\n  \"address\": \"Jl. Merdeka No. 45\",\n  \"phone\": \"081234567899\"\n}"
             },
-            "url": { "raw": "{{base_url_yii}}/api/v1/patients", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "patients"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/patients",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients"
+              ]
+            }
           }
         },
         {
           "name": "Get Medicines & Current Stock",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_yii}}/api/v1/medicines", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "medicines"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medicines",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medicines"
+              ]
+            }
           }
         },
         {
           "name": "Get Medical Procedures & Tarifs",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_yii}}/api/v1/medical-procedures", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "medical-procedures"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medical-procedures",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medical-procedures"
+              ]
+            }
           }
         }
       ]
@@ -83,21 +180,48 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"patient_id\": \"d0000000-0000-0000-0000-000000000001\",\n  \"polyclinic_id\": \"a0000000-0000-0000-0000-000000000001\",\n  \"doctor_id\": \"b0000000-0000-0000-0000-000000000001\",\n  \"visit_date\": \"2026-11-22\"\n}"
             },
-            "url": { "raw": "{{base_url_yii}}/api/v1/visits", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits"
+              ]
+            }
           }
         },
         {
           "name": "Get Today Queues",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_yii}}/api/v1/queues/today", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "queues", "today"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/queues/today",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "queues",
+                "today"
+              ]
+            }
           }
         }
       ]
@@ -110,14 +234,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"visit_id\": \"{{visit_id}}\",\n  \"chief_complaint\": \"Pusing dan tengkuk kaku\",\n  \"anamnesis\": \"Pasien merasa pusing berputar sejak pagi\",\n  \"systolic_bp\": 145,\n  \"diastolic_bp\": 90,\n  \"heart_rate\": 82,\n  \"temperature\": 36.6,\n  \"physical_examination\": \"Cor/Pulmo normal, akral hangat\",\n  \"doctor_notes\": \"Istirahat cukup dan batasi asupan garam\",\n  \"diagnoses\": [\n    { \"diagnosis_id\": \"e0000000-0000-0000-0000-000000000001\", \"type\": \"PRIMARY\", \"notes\": \"Hipertensi Primer\" }\n  ]\n}"
             },
-            "url": { "raw": "{{base_url_yii}}/api/v1/medical-records", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "medical-records"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medical-records",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medical-records"
+              ]
+            }
           }
         },
         {
@@ -125,14 +265,32 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"procedure_id\": \"f0000000-0000-0000-0000-000000000002\",\n  \"quantity\": 1\n}"
             },
-            "url": { "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/procedures", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits", "{{visit_id}}", "procedures"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/procedures",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "procedures"
+              ]
+            }
           }
         },
         {
@@ -140,14 +298,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"visit_id\": \"{{visit_id}}\",\n  \"notes\": \"Minum malam hari\",\n  \"items\": [\n    {\n      \"medicine_id\": \"10000000-0000-0000-0000-000000000005\",\n      \"dosage\": \"10 mg\",\n      \"frequency\": \"1x1 Sehari\",\n      \"quantity\": 30\n    }\n  ]\n}"
             },
-            "url": { "raw": "{{base_url_yii}}/api/v1/prescriptions", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "prescriptions"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/prescriptions",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prescriptions"
+              ]
+            }
           }
         }
       ]
@@ -160,14 +334,32 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"notes\": \"Obat telah diserahkan\"\n}"
             },
-            "url": { "raw": "{{base_url_yii}}/api/v1/prescriptions/{{prescription_id}}/dispense", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "prescriptions", "{{prescription_id}}", "dispense"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/prescriptions/{{prescription_id}}/dispense",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prescriptions",
+                "{{prescription_id}}",
+                "dispense"
+              ]
+            }
           }
         }
       ]
@@ -179,7 +371,19 @@
           "name": "Get Consolidated Invoice",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_yii}}/api/v1/invoices/visit/{{visit_id}}", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "invoices", "visit", "{{visit_id}}"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/invoices/visit/{{visit_id}}",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "visit",
+                "{{visit_id}}"
+              ]
+            }
           }
         },
         {
@@ -187,15 +391,94 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "X-Idempotency-Key", "value": "idemp-key-unique-uuid-12345" },
-              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "idemp-key-unique-uuid-12345"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"amount\": 150000,\n  \"payment_method\": \"CASH\",\n  \"reference_no\": \"CASH-001\"\n}"
             },
-            "url": { "raw": "{{base_url_yii}}/api/v1/invoices/{{invoice_id}}/payments", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "invoices", "{{invoice_id}}", "payments"] }
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/invoices/{{invoice_id}}/payments",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoice_id}}",
+                "payments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Invoice Adjustment (Critical Case 4)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adjustment_type\": \"ADDITION\",\n  \"amount\": 25000,\n  \"reason\": \"Biaya tambahan tindakan darurat pasca-konsultasi\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/invoices/{{invoice_id}}/adjustments",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoice_id}}",
+                "adjustments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Invoice Adjustments History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/invoices/{{invoice_id}}/adjustments",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoice_id}}",
+                "adjustments"
+              ]
+            }
           }
         }
       ]
@@ -207,21 +490,53 @@
           "name": "Node Service Health Check",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_node}}/api/v1/health", "host": ["{{base_url_node}}"], "path": ["api", "v1", "health"] }
+            "url": {
+              "raw": "{{base_url_node}}/api/v1/health",
+              "host": [
+                "{{base_url_node}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ]
+            }
           }
         },
         {
           "name": "Dashboard KPI Summary (Read-Only)",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_node}}/api/v1/dashboard/summary", "host": ["{{base_url_node}}"], "path": ["api", "v1", "dashboard", "summary"] }
+            "url": {
+              "raw": "{{base_url_node}}/api/v1/dashboard/summary",
+              "host": [
+                "{{base_url_node}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "summary"
+              ]
+            }
           }
         },
         {
           "name": "Dashboard Visits by Polyclinic",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url_node}}/api/v1/dashboard/visits-by-poly", "host": ["{{base_url_node}}"], "path": ["api", "v1", "dashboard", "visits-by-poly"] }
+            "url": {
+              "raw": "{{base_url_node}}/api/v1/dashboard/visits-by-poly",
+              "host": [
+                "{{base_url_node}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "visits-by-poly"
+              ]
+            }
           }
         }
       ]
@@ -233,32 +548,100 @@
           "name": "Get SATUSEHAT FHIR R4 Bundle",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/fhir-bundle", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits", "{{visit_id}}", "fhir-bundle"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/fhir-bundle",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "fhir-bundle"
+              ]
+            }
           }
         },
         {
           "name": "Sync Visit to SATUSEHAT",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/satusehat-sync", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits", "{{visit_id}}", "satusehat-sync"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/satusehat-sync",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "satusehat-sync"
+              ]
+            }
           }
         },
         {
           "name": "Get Ringkasan Pulang (Resume Medis)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/resume-medis", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits", "{{visit_id}}", "resume-medis"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/resume-medis",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "resume-medis"
+              ]
+            }
           }
         },
         {
           "name": "BPJS VClaim Cek Peserta NIK",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/bpjs/peserta/320101199001010001", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "bpjs", "peserta", "320101199001010001"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/bpjs/peserta/320101199001010001",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bpjs",
+                "peserta",
+                "320101199001010001"
+              ]
+            }
           }
         }
       ]
@@ -270,32 +653,102 @@
           "name": "Laporan 10 Besar Penyakit (RL 5.3 Kemenkes RI)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/reports/top-diagnoses?limit=10", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "reports", "top-diagnoses"], "query": [{"key": "limit", "value": "10"}] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/reports/top-diagnoses?limit=10",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "top-diagnoses"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
           }
         },
         {
           "name": "Laporan Rekonsiliasi Finansial Kasir",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/reports/financial-reconciliation", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "reports", "financial-reconciliation"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/reports/financial-reconciliation",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "financial-reconciliation"
+              ]
+            }
           }
         },
         {
           "name": "Ringkasan Kunjungan Rawat Jalan",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/reports/visit-summary", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "reports", "visit-summary"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/reports/visit-summary",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "visit-summary"
+              ]
+            }
           }
         },
         {
           "name": "Laporan Pemakaian Obat Apotek",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/reports/medicine-usage", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "reports", "medicine-usage"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/reports/medicine-usage",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "medicine-usage"
+              ]
+            }
           }
         }
       ]
@@ -307,24 +760,79 @@
           "name": "Get System Audit Logs",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/audit/logs?limit=50", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "audit", "logs"], "query": [{"key": "limit", "value": "50"}] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/audit/logs?limit=50",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "audit",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
           }
         },
         {
           "name": "Get Patient Audit Trail (Permenkes 24/2022)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/audit/patients/{{patient_id}}", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "audit", "patients", "{{patient_id}}"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/audit/patients/{{patient_id}}",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "audit",
+                "patients",
+                "{{patient_id}}"
+              ]
+            }
           }
         },
         {
           "name": "Get RME Compliance Summary",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
-            "url": { "raw": "{{base_url_yii}}/api/v1/audit/compliance-summary", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "audit", "compliance-summary"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/audit/compliance-summary",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "audit",
+                "compliance-summary"
+              ]
+            }
           }
         }
       ]

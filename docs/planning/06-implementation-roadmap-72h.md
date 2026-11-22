@@ -127,6 +127,34 @@ Pengembangan dibagi ke dalam 6 fase berdurasi masing-masing 12 jam untuk memasti
 - [x] 14 Skenario Pengujian Penyesuaian Finansial (`tests/invoice_adjustments_test.php`) 100% Passed.
 - [x] Total **134 Automated Tests** + **12 Health Monitors** + **7 DR Checks** + **21 E2E Stages** = **174 Verification Checkpoints (100% PASS)**.
 
+#### 🌪️ FASE 12: Chaos Engineering, High-Availability Resilience, & Deadlock Defense
+- [x] Test Suite Chaos & Resiliensi Sistem (`tests/chaos_resilience_test.php`, `make simrs-chaos`):
+  - Uji Atomisitas & Rollback Transaksi Database pada kegagalan eksepsi mid-flight (ACID guarantee).
+  - Uji Burst Konkurensi Pendaftaran & Nomor Antrean Atomik tanpa race condition / duplikasi.
+  - Uji Ketahanan Stok Minus Farmasi (Row-level lock `SELECT FOR UPDATE` & under-stock rejection).
+  - Uji Anti-Double Payment Replay Attack via Idempotency Key unik.
+  - Uji Immutabilitas Tarif Historis saat Master Data Tarif Diubah/Dimutasi.
+  - Uji Integritas & Audit Trail Penyesuaian Tagihan Kasus Kritis 4.
+  - Uji Ketahanan Validasi Schema FHIR R4 Bundle terhadap payload anomali.
+  - Uji Pembatasan Hak Akses Keamanan Lintas Peran (RBAC Boundary Protection).
+  - Uji Isolasi Pengguna PostgreSQL Read-Only (`simrs_dashboard_ro`) terhadap injeksi mutasi DDL/DML.
+  - Uji Integritas Ekspor Portabilitas Data Klinis Kemenkes SatuData & SHA-256 Checksum.
+  - Uji Transisi State Machine Kunjungan Pasien pada beban tinggi.
+- [x] 11 Skenario Pengujian Chaos & Resiliensi (`tests/chaos_resilience_test.php`) 100% Passed.
+- [x] Peningkatan Total Automated Tests dari 134 menjadi **145 Automated Tests**.
+
+#### 🏆 FASE 13: Final Deliverable Package, Executive Presentation Walkthrough, & Production Readiness
+- [x] Master Verification Suite (`make simrs-ci`): **185 dari 185 Checkpoints Lulus (100% HEALTHY & PASS)**:
+  - 12 Monitor Kesehatan Sistem (`make simrs-health`)
+  - 7 Disaster Recovery & Snapshot Checks (`make simrs-dr-test`)
+  - 145 Pengujian Unit & Integrasi Terotomasi (`make simrs-test`)
+  - 21 Master Tahapan Alur Rumah Sakit E2E (`make simrs-e2e`)
+- [x] Pembaruan Koleksi Postman (`postman/SIMRS_Collection.json` & `postman/SIMRS_Environment.json`) mencakup 10 Folder Modul dan Penyesuaian Finansial Kasus 4.
+- [x] Interactive Terminal Control Center 15 Menu (`scripts/simrs_menu.sh`, `make simrs-demo`).
+- [x] Script Presentasi & Panduan Demonstrasi Eksekutif 10 Menit (`docs/EXECUTIVE_DEMO_WALKTHROUGH.md`).
+- [x] Panduan Dewan Penguji Komprehensif (`docs/EXAMINER_EVALUATION_GUIDE.md`).
+- [x] Packaging Otomatis Deliverable Final (`make simrs-package`) menghasilkan arsip terkompresi `dist/simrs-inovamedika-deliverable.tar.gz`.
+
 ---
 
 ## 2. Struktur Monorepo Proyek
