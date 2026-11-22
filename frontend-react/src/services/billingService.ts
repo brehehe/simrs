@@ -1,6 +1,17 @@
 import apiClient from './api';
 import { ApiResponse } from '../types/auth';
 
+export interface InvoiceAdjustment {
+  id: string;
+  invoice_id: string;
+  adjustment_type: 'ADDITION' | 'DEDUCTION' | 'CANCELLATION';
+  amount: number;
+  reason: string;
+  created_at: string;
+  author_name?: string;
+  author_role?: string;
+}
+
 export interface Invoice {
   id: string;
   invoice_number: string;
@@ -17,6 +28,8 @@ export interface Invoice {
   paid_amount: number;
   outstanding_balance: number;
   status: string;
+  version?: number;
+  adjustments?: InvoiceAdjustment[];
   items: {
     id: string;
     item_type: string;
@@ -72,6 +85,20 @@ export const billingService = {
         'X-Idempotency-Key': payload.idempotency_key,
       },
     });
+    return res.data.data;
+  },
+
+  async createAdjustment(invoiceId: string, payload: {
+    adjustment_type: 'ADDITION' | 'DEDUCTION' | 'CANCELLATION';
+    amount: number;
+    reason: string;
+  }): Promise<any> {
+    const res = await apiClient.post<ApiResponse<any>>(`/invoices/${invoiceId}/adjustments`, payload);
+    return res.data.data;
+  },
+
+  async getAdjustments(invoiceId: string): Promise<InvoiceAdjustment[]> {
+    const res = await apiClient.get<ApiResponse<InvoiceAdjustment[]>>(`/invoices/${invoiceId}/adjustments`);
     return res.data.data;
   },
 };

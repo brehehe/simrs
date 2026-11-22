@@ -13,10 +13,13 @@ Aplikasi **SIMRS Rawat Jalan Terintegrasi** telah diselesaikan 100% secara utuh,
 | Perintah | Deskripsi | Hasil / Output |
 |---|---|---|
 | `make simrs-demo` | **Interactive Terminal Control Center & Menu** | Menu CLI interaktif untuk menjalankan pengujian, simulasi, dan inspeksi data. |
-| `make simrs-ci` | **Full Production CI/CD Pipeline (141 Checkpoints)** | Menjalankan Health Check + 120 Test Unit/Integrasi + 21 E2E Stages (**100% PASS**). |
+| `make simrs-ci` | **Full Production CI/CD Pipeline (174 Checkpoints)** | Menjalankan Health Check (12) + DR (7) + 134 Test Unit/Integrasi + 21 E2E Stages (**100% PASS**). |
 | `make simrs-health` | **System Health & Integrity Diagnostics** | 12 Monitor kesehatan engine, skema 31 tabel, volumetrik, dan isolasi read-only. |
+| `make simrs-dr-test` | **Disaster Recovery & Snapshot Integrity** | 7 Pengujian snapshot pg_dump, integritas skema, dan validasi RPO = 0 / RTO < 5m. |
 | `make simrs-e2e` | **Master Acceptance Test E2E (21 Tahapan)** | Menguji alur lengkap dari pendaftaran s/d SATUSEHAT FHIR R4. |
-| `make simrs-test` | **Full Automated Test Suite (120 Tests)** | 54 Core + 28 FHIR + 14 Reports RL 5.3 + 13 Audit + 11 Node.js (**100% PASS**). |
+| `make simrs-test` | **Full Automated Test Suite (134 Tests)** | 54 Core + 28 FHIR + 14 Reports + 13 Audit + 14 Adjustments + 11 Node (**100% PASS**). |
+| `make simrs-adjustments-test` | **Uji Penyesuaian Finansial (Kasus Kritis 4)** | 14 skenario mitigasi perubahan tindakan pasca-invoice tanpa merusak snapshot. |
+| `make simrs-export` | **Ekspor Dataset SatuData Kemenkes RI** | Ekspor rekam medis lengkap format JSON standar SatuData + SHA-256 manifest. |
 | `make simrs-reports-test` | **Uji Laporan Klinis & RL 5.3 Kemenkes** | 14 skenario pengujian 10 besar penyakit morbiditas & rekonsiliasi kasir. |
 | `make simrs-audit-test` | **Uji Audit Trail Permenkes 24/2022** | 13 skenario pengujian integritas mutasi RME dan retensi data 25 tahun. |
 | `make simrs-simulate` | **Simulasi 1 Hari Pelayanan Rumah Sakit** | Mensimulasikan 3 skenario pasien lengkap secara end-to-end. |
@@ -87,6 +90,8 @@ Kata Sandi (*Default Password*) untuk seluruh akun pengujian: `Password123!`
 - **BPJS Kesehatan VClaim 2.0:** Pengecekan status peserta aktif dan auto-generate Surat Eligibilitas Peserta (SEP).
 - **Laporan Morbiditas RL 5.3 Kemenkes RI:** Pemeringkatan 10 besar penyakit rawat jalan dengan pemisahan proporsional kasus laki-laki vs perempuan, serta rekonsiliasi kasir multi-metode pembayaran (`/reports`).
 - **Audit Trail Kepatuhan Permenkes 24/2022:** Pencatatan otomatis, transparan, dan tidak dapat dimanipulasi untuk setiap akses, pembuatan SOAP, revisi medis, penyerahan obat, dan transaksi finansial dengan diff viewer data lama vs baru (`/audit-logs`).
+- **Mitigasi Perubahan Layanan Pasca-Invoice (Kasus Kritis 4):** Penyesuaian tagihan (`invoice_adjustments`) dengan otorisasi resmi (`ADDITION`, `DEDUCTION`, `CANCELLATION`), penambahan versi invoice, dan proteksi snapshot harga historis.
+- **Portabilitas Data & Kesiapan Bencana (Disaster Recovery):** Ekspor dataset rekam medis terpadu Kemenkes SatuData dengan manifest SHA-256, serta verifikasi snapshot recovery dengan parameter RPO = 0 dan RTO < 5 menit.
 
 ---
 

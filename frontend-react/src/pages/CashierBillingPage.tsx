@@ -47,6 +47,13 @@ export const CashierBillingPage: React.FC = () => {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
 
+  // Adjustment Modal State (Critical Case 4)
+  const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
+  const [adjustmentType, setAdjustmentType] = useState<'DEDUCTION' | 'ADDITION' | 'CANCELLATION'>('DEDUCTION');
+  const [adjustmentAmount, setAdjustmentAmount] = useState<number>(0);
+  const [adjustmentReason, setAdjustmentReason] = useState<string>('');
+  const [isSubmittingAdjustment, setIsSubmittingAdjustment] = useState(false);
+
   // Load visits
   const fetchVisits = async () => {
     try {
@@ -151,6 +158,38 @@ export const CashierBillingPage: React.FC = () => {
 
   const change = activeInvoice ? Math.max(0, paymentAmount - activeInvoice.outstanding_balance) : 0;
 
+  const handleCreateAdjustment = async () => {
+    if (!activeInvoice) return;
+    if (adjustmentType !== 'CANCELLATION' && adjustmentAmount <= 0) {
+      toast.error('Nominal penyesuaian harus lebih besar dari 0.');
+      return;
+    }
+    if (adjustmentReason.length < 5) {
+      toast.error('Alasan penyesuaian wajib diisi secara rinci (minimal 5 karakter).');
+      return;
+    }
+    try {
+      setIsSubmittingAdjustment(true);
+      await billingService.createAdjustment(activeInvoice.id, {
+        adjustment_type: adjustmentType,
+        amount: adjustmentAmount,
+        reason: adjustmentReason,
+      });
+      toast.success('Penyesuaian tagihan berhasil disimpan.');
+      setIsAdjustmentModalOpen(false);
+      setAdjustmentAmount(0);
+      setAdjustmentReason('');
+      if (activeInvoice?.visit_id) {
+        const inv = await billingService.getInvoiceByVisit(activeInvoice.visit_id);
+        setActiveInvoice(inv);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Gagal menyimpan penyesuaian biaya.');
+    } finally {
+      setIsSubmittingAdjustment(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -221,11 +260,19 @@ export const CashierBillingPage: React.FC = () => {
                     <span className="font-bold text-slate-900 text-sm block">{activeInvoice.patient_name}</span>
                     <span className="font-mono text-slate-500">No. RM: {activeInvoice.mr_number} • Reg: {activeInvoice.visit_number}</span>
                   </div>
-                  <div className="text-right">
-                    <StatusBadge status={activeInvoice.status} />
-                    <span className="text-[10px] text-slate-400 block mt-1">
-                      {new Date(activeInvoice.created_at).toLocaleDateString('id-ID')}
+                  <div className="text-right flex items-center gap-2">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-700">
+                      Versi {activeInvoice.version || 1}
                     </span>
+                    <StatusBadge status={activeInvoice.status} />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsAdjustmentModalOpen(true)}
+                      className="text-xs h-7 ml-2"
+                    >
+                      + Koreksi / Diskon
+                    </Button>
                   </div>
                 </div>
 
@@ -294,6 +341,29 @@ export const CashierBillingPage: React.FC = () => {
                     <span>Sisa Tagihan (Outstanding):</span>
                     <span className="font-mono text-base text-amber-800">Rp {activeInvoice.outstanding_balance.toLocaleString('id-ID')}</span>
                   </div>
+
+                  {activeInvoice.adjustments && activeInvoice.adjustments.length > 0 && (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
+                      <p className="font-semibold text-slate-700">Riwayat Penyesuaian Biaya (Kasus 4):</p>
+                      {activeInvoice.adjustments.map((adj) => (
+                        <div key={adj.id} className="flex justify-between items-center text-slate-600">
+                          <span className="flex items-center gap-1.5">
+                            <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
+                              adj.adjustment_type === 'DEDUCTION' ? 'bg-emerald-100 text-emerald-800' :
+                              adj.adjustment_type === 'ADDITION' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                            }`}>
+                              {adj.adjustment_type}
+                            </span>
+                            <span>{adj.reason}</span>
+                            <span className="text-[10px] text-slate-400">({adj.author_name})</span>
+                          </span>
+                          <span className="font-mono font-semibold">
+                            {adj.adjustment_type === 'DEDUCTION' ? '-' : '+'}Rp {Number(adj.amount).toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -555,6 +625,95 @@ export const CashierBillingPage: React.FC = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Modal Penyesuaian Biaya / Diskon (Critical Case 4) */}
+      <Modal
+        isOpen={isAdjustmentModalOpen}
+        onClose={() => setIsAdjustmentModalOpen(false)}
+        title="Form Penyesuaian Tagihan / Diskon (Kasus Kritis 4)"
+      >
+        <div className="space-y-4 text-xs">
+          <p className="text-slate-500">
+            Penyesuaian tagihan pasca-invoice tanpa merusak snapshot historis. Seluruh penyesuaian dicatat pada tabel audit.
+          </p>
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">Tipe Penyesuaian</label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setAdjustmentType('DEDUCTION')}
+                className={`p-2 rounded-lg border text-center transition-colors ${
+                  adjustmentType === 'DEDUCTION'
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold'
+                    : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                }`}
+              >
+                Potongan / Diskon (DEDUCTION)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdjustmentType('ADDITION')}
+                className={`p-2 rounded-lg border text-center transition-colors ${
+                  adjustmentType === 'ADDITION'
+                    ? 'border-amber-600 bg-amber-50 text-amber-900 font-bold'
+                    : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                }`}
+              >
+                Biaya Tambahan (ADDITION)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdjustmentType('CANCELLATION')}
+                className={`p-2 rounded-lg border text-center transition-colors ${
+                  adjustmentType === 'CANCELLATION'
+                    ? 'border-rose-600 bg-rose-50 text-rose-900 font-bold'
+                    : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                }`}
+              >
+                Pembatalan (CANCELLATION)
+              </button>
+            </div>
+          </div>
+
+          {adjustmentType !== 'CANCELLATION' && (
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Nominal Penyesuaian (Rp)</label>
+              <Input
+                type="number"
+                min="1000"
+                step="1000"
+                value={adjustmentAmount || ''}
+                onChange={(e) => setAdjustmentAmount(Number(e.target.value))}
+                placeholder="Contoh: 25000"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">Alasan Penyesuaian (Wajib Rinci, Min. 5 Karakter)</label>
+            <textarea
+              rows={3}
+              className="w-full p-2.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+              placeholder="Contoh: Diskon khusus persetujuan Direktur Pelayanan untuk pasien reguler..."
+              value={adjustmentReason}
+              onChange={(e) => setAdjustmentReason(e.target.value)}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setIsAdjustmentModalOpen(false)}>
+              Batal
+            </Button>
+            <Button
+              onClick={handleCreateAdjustment}
+              isLoading={isSubmittingAdjustment}
+            >
+              Simpan Penyesuaian
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

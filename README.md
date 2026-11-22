@@ -77,30 +77,39 @@ npm run dev
 
 ---
 
-## 🧪 Eksekusi Pengujian Otomatis & Diagnostic Suite (141 Checkpoints)
+## 🧪 Eksekusi Pengujian Otomatis & Diagnostic Suite (174 Checkpoints)
 
-Seluruh 18 skenario uji, proteksi 6 masalah kritis, integrasi SATUSEHAT FHIR R4, pelaporan Kemenkes RL 5.3, dan audit trail Permenkes 24/2022 dapat diverifikasi dengan perintah terpadu:
+Seluruh 18 skenario uji, proteksi 6 masalah kritis, integrasi SATUSEHAT FHIR R4, pelaporan Kemenkes RL 5.3, audit trail Permenkes 24/2022, mitigasi penyesuaian biaya (Kasus 4), dan kesiapan Disaster Recovery dapat diverifikasi dengan perintah terpadu:
 
 ```bash
-# 1. Jalankan CI/CD Pipeline Komprehensif (Health + 120 Tests + 21 E2E Stages)
+# 1. Jalankan CI/CD Pipeline Komprehensif (Health 12 + DR 7 + 134 Tests + 21 E2E Stages)
 make simrs-ci
 
-# 2. Jalankan Full Automated Test Suite (120 Tests Unit & Integrasi)
+# 2. Jalankan Full Automated Test Suite (134 Tests Unit & Integrasi)
 make simrs-test
 
 # 3. Jalankan System Health Check & Integrity Diagnostics (12 Monitors)
 make simrs-health
 
-# 4. Jalankan Master Acceptance Test E2E (21 Tahapan Alur Rumah Sakit Tanpa Mock)
+# 4. Jalankan Disaster Recovery & Snapshot Integrity Test (7 DR Checks)
+make simrs-dr-test
+
+# 5. Jalankan Uji Penyesuaian Tagihan Kasus Kritis 4 (14 Tests)
+make simrs-adjustments-test
+
+# 6. Ekspor Dataset Rekam Medis Kemenkes SatuData (+ SHA-256 Manifest)
+make simrs-export
+
+# 7. Jalankan Master Acceptance Test E2E (21 Tahapan Alur Rumah Sakit Tanpa Mock)
 make simrs-e2e
 
-# 5. Jalankan Interactive Terminal Demo Control Center
+# 8. Jalankan Interactive Terminal Demo Control Center
 make simrs-demo
 
-# 6. Uji Stres Konkurensi & Benchmark (600+ req/s Multi-Thread)
+# 9. Uji Stres Konkurensi & Benchmark (600+ req/s Multi-Thread)
 make simrs-benchmark
 
-# 7. Buat Paket Deliverable Arsip (.tar.gz) untuk Penguji
+# 10. Buat Paket Deliverable Arsip (.tar.gz) untuk Penguji
 make simrs-package
 ```
 
@@ -114,13 +123,17 @@ Hasil verifikasi:
 ✓ SATUSEHAT FHIR R4 & BPJS Verification: 28 PASSED (0 FAILED)
 ✓ Clinical & Financial Reports (RL 5.3) Verification: 14 PASSED (0 FAILED)
 ✓ Permenkes 24/2022 Audit Trail Verification: 13 PASSED (0 FAILED)
+✓ Critical Case 4 Financial Adjustments Verification: 14 PASSED (0 FAILED)
 ✓ Node.js Supporting Service Verification: 11 PASSED (0 FAILED)
 ✓ Frontend React SPA Build Verification: 0 ERRORS, 0 WARNINGS
 ========================================================================
-   🎉 ALL 120 AUTOMATED TESTS & PRODUCTION BUILDS PASSED SUCCESSFULLY!   
+   🎉 ALL 134 AUTOMATED TESTS & PRODUCTION BUILDS PASSED SUCCESSFULLY!   
 ========================================================================
-+ Master Acceptance Test E2E: 21 of 21 Stages PASSED (100% PASS)
-TOTAL: 141 VERIFICATION CHECKPOINTS PASSED (100% PASS)
++ System Health & Integrity Monitors                  : 12 of 12 HEALTHY (100%)
++ Disaster Recovery & Snapshot Verifier               : 7 of 7 CHECKS PASSED (100%)
++ Master Acceptance Test E2E (Alur Rumah Sakit Penuh) : 21 of 21 Stages PASSED (100%)
+------------------------------------------------------------------------
+>>> CI/CD VERIFICATION SUITE: 174/174 CHECKPOINTS PASSED (100% HEALTHY) <<<
 ```
 
 ---

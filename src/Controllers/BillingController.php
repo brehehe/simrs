@@ -8,6 +8,7 @@ use App\Common\ResponseHelper;
 use App\Common\JwtHelper;
 use App\Common\Database;
 use App\Services\BillingService;
+use App\Services\InvoiceAdjustmentService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Router\CurrentRoute;
@@ -87,6 +88,51 @@ class BillingController
             if (!$payment) return ResponseHelper::error("Kuitansi pembayaran tidak ditemukan.", 404);
 
             return ResponseHelper::success($payment, "Kuitansi pembayaran berhasil diambil.");
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * POST /api/v1/invoices/{id}/adjustments
+     */
+    public function createAdjustment(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        $invoiceId = $currentRoute?->getArgument('id') ?? $request->getAttribute('id');
+        if (empty($invoiceId)) return ResponseHelper::error("Invoice ID wajib disertakan.", 400);
+
+        $body = $request->getParsedBody();
+        if (empty($body)) {
+            $raw = (string) $request->getBody();
+            $body = json_decode($raw, true) ?: [];
+        }
+
+        $user = JwtHelper::getAuthenticatedUser($request);
+        $userId = $user['id'] ?? '88888888-8888-8888-8888-888888888888';
+
+        try {
+            $adjService = new InvoiceAdjustmentService();
+            $result = $adjService->createAdjustment($invoiceId, $body, $userId);
+            return ResponseHelper::success($result, "Penyesuaian tagihan berhasil dicatat.", 201);
+        } catch (Exception $e) {
+            $code = $e->getCode() ?: 400;
+            if ($code < 100 || $code > 599) $code = 400;
+            return ResponseHelper::error($e->getMessage(), $code);
+        }
+    }
+
+    /**
+     * GET /api/v1/invoices/{id}/adjustments
+     */
+    public function getAdjustments(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
+    {
+        $invoiceId = $currentRoute?->getArgument('id') ?? $request->getAttribute('id');
+        if (empty($invoiceId)) return ResponseHelper::error("Invoice ID wajib disertakan.", 400);
+
+        try {
+            $adjService = new InvoiceAdjustmentService();
+            $adjustments = $adjService->getAdjustmentsByInvoice($invoiceId);
+            return ResponseHelper::success($adjustments, "Daftar penyesuaian invoice berhasil diambil.");
         } catch (Exception $e) {
             return ResponseHelper::error($e->getMessage(), 500);
         }

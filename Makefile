@@ -144,7 +144,7 @@ endif
 # SIMRS Local Development Targets
 #
 
-simrs-test: ## Run full SIMRS verification tests (54 Core + 28 FHIR + 14 Reports + 13 Audit + 11 Node = 120 tests)
+simrs-test: ## Run full SIMRS verification tests (54 Core + 28 FHIR + 14 Reports + 13 Audit + 14 Adjustments + 11 Node = 134 tests)
 	@bash tests/run_all_tests.sh
 
 simrs-satusehat-test: ## Run SATUSEHAT FHIR R4 and BPJS VClaim test suite
@@ -156,20 +156,31 @@ simrs-reports-test: ## Run Clinical & Financial Reports (Kemenkes RL 5.3) test s
 simrs-audit-test: ## Run Permenkes 24/2022 RME Audit Trail Compliance test suite
 	@php tests/audit_compliance_test.php
 
+simrs-adjustments-test: ## Run Critical Case 4 Financial Adjustments test suite
+	@php tests/invoice_adjustments_test.php
+
+simrs-export: ## Export full clinical dataset to Kemenkes SatuData JSON + SHA-256
+	@php scripts/export_clinical_dataset.php
+
+simrs-dr-test: ## Run Disaster Recovery & Database Snapshot verification
+	@php scripts/disaster_recovery_verify.php
+
 simrs-health: ## Run System Health Check & Integrity Diagnostics
 	@php scripts/system_health_check.php
 
 simrs-e2e: ## Run Master End-to-End Acceptance Test (21 stages)
 	@php scripts/e2e_acceptance_test.php
 
-simrs-ci: ## Run Complete Production Verification (Health + 120 Tests + 21 E2E Stages)
+simrs-ci: ## Run Complete Production Verification (Health 12 + DR 7 + 134 Tests + 21 E2E = 174 Checkpoints)
 	@php scripts/system_health_check.php
+	@echo ""
+	@php scripts/disaster_recovery_verify.php
 	@echo ""
 	@bash tests/run_all_tests.sh
 	@echo ""
 	@php scripts/e2e_acceptance_test.php
 	@echo ""
-	@echo ">>> CI/CD VERIFICATION SUITE: 141/141 CHECKPOINTS PASSED (100% HEALTHY) <<<"
+	@echo ">>> CI/CD VERIFICATION SUITE: 174/174 CHECKPOINTS PASSED (100% HEALTHY) <<<"
 
 simrs-package: ## Build and package complete deliverable archive for examiners
 	@echo "Building React frontend production bundle..."

@@ -141,6 +141,12 @@ return [
             Route::get('/api/v1/payments/{id}/receipt')
                 ->action([BillingController::class, 'getReceipt'])
                 ->name('api.payments.receipt'),
+            Route::post('/api/v1/invoices/{id}/adjustments')
+                ->action([BillingController::class, 'createAdjustment'])
+                ->name('api.invoices.adjustments.create'),
+            Route::get('/api/v1/invoices/{id}/adjustments')
+                ->action([BillingController::class, 'getAdjustments'])
+                ->name('api.invoices.adjustments.list'),
 
             // 7. Internal Gateway Endpoints (Node.js <-> Yii Core)
             Route::post('/internal-api/v1/lab-results')

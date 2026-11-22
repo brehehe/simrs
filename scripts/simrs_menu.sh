@@ -30,19 +30,22 @@ show_menu() {
     echo -e "${BOLD}PILIH MENU OPERASIONAL / PENGUJIAN:${NC}"
     echo ""
     echo -e "  ${GREEN}1)${NC} 🧪 Jalankan Master Acceptance Test E2E (${BOLD}21 Tahapan Alur Rumah Sakit${NC})"
-    echo -e "  ${GREEN}2)${NC} 📊 Jalankan Full Automated Test Suite (${BOLD}120 Unit & Integration Tests${NC})"
+    echo -e "  ${GREEN}2)${NC} 📊 Jalankan Full Automated Test Suite (${BOLD}134 Unit & Integration Tests${NC})"
     echo -e "  ${GREEN}3)${NC} 🩺 Jalankan System Health Check & Integrity Diagnostics (${BOLD}12 Monitors 100% OK${NC})"
     echo -e "  ${GREEN}4)${NC} 🛡️  Jalankan Uji Audit Trail Permenkes 24/2022 (${BOLD}13 Kepatuhan RME Tests${NC})"
-    echo -e "  ${GREEN}5)${NC} 🏥 Jalankan Simulasi 1 Hari Operasional RS (${BOLD}3 Pasien Alur Penuh Selesai${NC})"
-    echo -e "  ${GREEN}6)${NC} ⚡ Jalankan Uji Stres Konkurensi & Benchmark (${BOLD}600+ req/s Multi-Thread${NC})"
-    echo -e "  ${GREEN}7)${NC} 📦 Inspeksi Live Data, Total Kunjungan & Stok Obat Real-time"
-    echo -e "  ${GREEN}8)${NC} 🔑 Tampilkan Kredensial Pengujian (Cheat Sheet 6 Role & Akun)"
-    echo -e "  ${GREEN}9)${NC} 🌐 Buka Layanan Web di Browser (SPA, Display TV Antrean, Swagger UI)"
-    echo -e "  ${GREEN}10)${NC} 🎁 Buat Arsip Paket Deliverable (.tar.gz) Penguji"
-    echo -e "  ${GREEN}11)${NC} 🚪 Keluar"
+    echo -e "  ${GREEN}5)${NC} 💰 Jalankan Uji Penyesuaian Finansial Kasus 4 (${BOLD}14 Invoice Adjustment Tests${NC})"
+    echo -e "  ${GREEN}6)${NC} 💾 Ekspor Dataset Klinis Kemenkes SatuData (${BOLD}JSON + SHA-256 Manifest${NC})"
+    echo -e "  ${GREEN}7)${NC} 🛡️  Jalankan Disaster Recovery & Snapshot Verification (${BOLD}7 DR Checks${NC})"
+    echo -e "  ${GREEN}8)${NC} 🏥 Jalankan Simulasi 1 Hari Operasional RS (${BOLD}3 Pasien Alur Penuh Selesai${NC})"
+    echo -e "  ${GREEN}9)${NC} ⚡ Jalankan Uji Stres Konkurensi & Benchmark (${BOLD}600+ req/s Multi-Thread${NC})"
+    echo -e "  ${GREEN}10)${NC} 📦 Inspeksi Live Data, Total Kunjungan & Stok Obat Real-time"
+    echo -e "  ${GREEN}11)${NC} 🔑 Tampilkan Kredensial Pengujian (Cheat Sheet 6 Role & Akun)"
+    echo -e "  ${GREEN}12)${NC} 🌐 Buka Layanan Web di Browser (SPA, Display TV Antrean, Swagger UI)"
+    echo -e "  ${GREEN}13)${NC} 🎁 Buat Arsip Paket Deliverable (.tar.gz) Penguji"
+    echo -e "  ${GREEN}14)${NC} 🚪 Keluar"
     echo ""
     echo -e "${BLUE}--------------------------------------------------------------------------------${NC}"
-    read -p "Masukkan pilihan [1-11]: " choice
+    read -p "Masukkan pilihan [1-14]: " choice
 }
 
 while true; do
@@ -74,17 +77,35 @@ while true; do
             ;;
         5)
             clear
-            php scripts/simulate_day.php
+            php tests/invoice_adjustments_test.php
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
         6)
             clear
-            php scripts/benchmark_concurrency.php
+            php scripts/export_clinical_dataset.php
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
         7)
+            clear
+            php scripts/disaster_recovery_verify.php
+            echo ""
+            read -p "Tekan [Enter] untuk kembali ke menu..."
+            ;;
+        8)
+            clear
+            php scripts/simulate_day.php
+            echo ""
+            read -p "Tekan [Enter] untuk kembali ke menu..."
+            ;;
+        9)
+            clear
+            php scripts/benchmark_concurrency.php
+            echo ""
+            read -p "Tekan [Enter] untuk kembali ke menu..."
+            ;;
+        10)
             clear
             echo -e "${CYAN}=== STATISTIK OPERASIONAL SIMRS REAL-TIME ===${NC}\n"
             PGPASSWORD='SimrsCoreSecret2026!' psql -h 127.0.0.1 -U simrs_core -d simrs_db -c "
@@ -110,7 +131,7 @@ while true; do
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
-        8)
+        11)
             clear
             echo -e "${CYAN}=== KREDENSIAL PENGUJIAN AKUN ROLE SIMRS ===${NC}\n"
             echo -e "Kata Sandi Default Seluruh Akun: ${BOLD}${YELLOW}Password123!${NC}\n"
@@ -133,7 +154,7 @@ while true; do
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
-        9)
+        12)
             echo -e "\n${GREEN}Membuka tautan peramban...${NC}"
             if command -v open &> /dev/null; then
                 open "http://localhost:5173"
@@ -144,14 +165,14 @@ while true; do
             fi
             sleep 1
             ;;
-        10)
+        13)
             clear
             echo -e "${CYAN}=== MEMBUAT PAKET DELIVERABLE LENGKAP UNTUK PENGUJI ===${NC}\n"
             make simrs-package
             echo ""
             read -p "Tekan [Enter] untuk kembali ke menu..."
             ;;
-        11)
+        14)
             echo -e "\n${GREEN}Terima kasih telah menggunakan sistem SIMRS PT Inova Medika Solusindo!${NC}\n"
             exit 0
             ;;

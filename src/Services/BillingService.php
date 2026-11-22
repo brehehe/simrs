@@ -204,6 +204,8 @@ class BillingService
                 ORDER BY created_at ASC
             ", [':invid' => $invoice['id']]);
 
+            $invoice['adjustments'] = (new InvoiceAdjustmentService())->getAdjustmentsByInvoice($invoice['id']);
+
             $invoice['patient_name'] = $visit['patient_name'];
             $invoice['mr_number'] = $visit['mr_number'];
             $invoice['visit_number'] = $visit['visit_number'];

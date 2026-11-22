@@ -117,6 +117,16 @@ Pengembangan dibagi ke dalam 6 fase berdurasi masing-masing 12 jam untuk memasti
 - [x] Total 120 Pengujian Terotomasi Terintegrasi (`make simrs-test`) + 21 E2E Stages (`make simrs-e2e`) = **141 Verification Checkpoints Passed (100% PASS)**.
 - [x] Packaging deliverable otomatis (`make simrs-package`) dan target CI/CD terpadu (`make simrs-ci`).
 
+#### 💰 FASE 11: Critical Case 4 Financial Adjustments, SatuData Clinical Portability Engine, & Disaster Recovery Verification
+- [x] Service Layer Penyesuaian Tagihan (`src/Services/InvoiceAdjustmentService.php` & `BillingController.php`):
+  - Penambahan biaya (*ADDITION* / *Surcharge*), potongan/diskon (*DEDUCTION*), dan pembatalan tagihan (*CANCELLATION*).
+  - Proteksi *snapshot immutability*, penambahan versi invoice (*version increment*), penguncian baris `FOR UPDATE`, dan pencatatan audit log otomatis.
+- [x] Frontend Kasir Penyesuaian Biaya (`CashierBillingPage.tsx`): Modal form penyesuaian biaya, indikator versi invoice, dan riwayat penyesuaian.
+- [x] Clinical Data Portability & SatuData Export Engine (`scripts/export_clinical_dataset.php`, `make simrs-export`): Ekspor dataset rekam medis lengkap berstandar interoperabilitas nasional Kemenkes SatuData + hash SHA-256 manifest.
+- [x] Disaster Recovery & Snapshot Verifier (`scripts/disaster_recovery_verify.php`, `make simrs-dr-test`): Snapshot pg_dump, verifikasi 31 tabel, partial unique index, dan evaluasi RPO = 0 & RTO < 5 menit.
+- [x] 14 Skenario Pengujian Penyesuaian Finansial (`tests/invoice_adjustments_test.php`) 100% Passed.
+- [x] Total **134 Automated Tests** + **12 Health Monitors** + **7 DR Checks** + **21 E2E Stages** = **174 Verification Checkpoints (100% PASS)**.
+
 ---
 
 ## 2. Struktur Monorepo Proyek
