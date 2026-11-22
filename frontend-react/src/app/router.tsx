@@ -16,6 +16,7 @@ import { DoctorExaminationPage } from '../pages/DoctorExaminationPage';
 import { LabOrdersPage } from '../pages/LabOrdersPage';
 import { PharmacyPage } from '../pages/PharmacyPage';
 import { CashierBillingPage } from '../pages/CashierBillingPage';
+import { ReportsPage } from '../pages/ReportsPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
@@ -111,6 +112,9 @@ export const router = createBrowserRouter([
           { path: '/cashier/invoices', element: <CashierBillingPage /> },
           { path: '/cashier/payments', element: <CashierBillingPage /> },
           { path: '/cashier/history', element: <CashierBillingPage /> },
+
+          // 7. Clinical & Financial Reports (Kemenkes RL 5.3)
+          { path: '/reports', element: <ReportsPage /> },
 
           // Master Data fallbacks
           { path: '/staff', element: <DashboardPage /> },

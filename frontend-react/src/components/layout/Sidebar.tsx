@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   HeartPulse,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/auth';
@@ -45,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'ADMIN':
         return [
           { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+          { label: 'Laporan & Rekonsiliasi', href: '/reports', icon: BarChart3 },
           { label: 'Data Pasien', href: '/patients', icon: Users },
           { label: 'Dokter & Staf', href: '/staff', icon: Stethoscope },
           { label: 'Poliklinik', href: '/polyclinics', icon: Building2 },
@@ -91,6 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           { label: 'Tagihan Pasien', href: '/cashier/invoices', icon: ClipboardList, badge: 'Unpaid', badgeColor: 'danger' },
           { label: 'Pembayaran Kasir', href: '/cashier/payments', icon: CreditCard },
           { label: 'Riwayat Kuitansi', href: '/cashier/history', icon: FileText },
+          { label: 'Laporan Rekonsiliasi', href: '/reports', icon: BarChart3 },
         ];
       default:
         return [{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }];

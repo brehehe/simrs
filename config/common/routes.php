@@ -11,6 +11,7 @@ use App\Controllers\BillingController;
 use App\Controllers\InternalApiController;
 use App\Controllers\SatuSehatController;
 use App\Controllers\BpjsController;
+use App\Controllers\ReportController;
 use App\Controllers\CorsController;
 use App\Web;
 use Yiisoft\Router\Group;
@@ -166,5 +167,19 @@ return [
             Route::post('/api/v1/bpjs/sep')
                 ->action([BpjsController::class, 'generateSep'])
                 ->name('api.bpjs.sep'),
+
+            // 10. Clinical & Financial Reporting Endpoints (Kemenkes RL 5.3 & Rekonsiliasi)
+            Route::get('/api/v1/reports/top-diagnoses')
+                ->action([ReportController::class, 'getTopDiagnoses'])
+                ->name('api.reports.top_diagnoses'),
+            Route::get('/api/v1/reports/financial-reconciliation')
+                ->action([ReportController::class, 'getFinancialReconciliation'])
+                ->name('api.reports.financial_reconciliation'),
+            Route::get('/api/v1/reports/visit-summary')
+                ->action([ReportController::class, 'getVisitSummary'])
+                ->name('api.reports.visit_summary'),
+            Route::get('/api/v1/reports/medicine-usage')
+                ->action([ReportController::class, 'getMedicineUsage'])
+                ->name('api.reports.medicine_usage'),
         ),
 ];
