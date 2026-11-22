@@ -35,6 +35,7 @@
     "require": {
         "php": "8.2 - 8.5",
         "ext-filter": "*",
+        "firebase/php-jwt": "^7.2",
         "httpsoft/http-message": "^1.1.6",
         "psr/container": "^2.0.2",
         "psr/http-factory": "^1.1",
@@ -46,6 +47,7 @@
         "yiisoft/assets": "^5.1.2",
         "yiisoft/config": "^1.6.2",
         "yiisoft/csrf": "^2.2.3",
+        "yiisoft/db-pgsql": "^2.0",
         "yiisoft/definitions": "^3.4.1",
         "yiisoft/di": "^1.4.1",
         "yiisoft/error-handler": "^4.3.2",

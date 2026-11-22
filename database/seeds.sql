@@ -13,16 +13,16 @@ INSERT INTO roles (code, name, description) VALUES
 ('CASHIER', 'Kasir', 'Pemeriksaan invoice teragregasi, pembayaran tunai/non-tunai, dan kuitansi')
 ON CONFLICT (code) DO NOTHING;
 
--- 2. USERS (Password default: 'Password123!' -> hash bcrypt: $2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi)
+-- 2. USERS (Password default: 'Password123!' -> hash bcrypt: $2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6)
 INSERT INTO users (id, username, email, password_hash, role_code, full_name, is_active) VALUES
-('11111111-1111-1111-1111-111111111111', 'admin', 'admin@simrs.hospital.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 'Super Administrator, S.Kom', TRUE),
-('22222222-2222-2222-2222-222222222222', 'petugas.pendaftaran', 'pendaftaran@simrs.hospital.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'REGISTRATION', 'Rina Wulandari, A.Md.RMIK', TRUE),
-('33333333-3333-3333-3333-333333333333', 'dr.budi', 'dr.budi@simrs.hospital.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'DOCTOR', 'dr. Budi Santoso, Sp.PD', TRUE),
-('44444444-4444-4444-4444-444444444444', 'dr.anisa', 'dr.anisa@simrs.hospital.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'DOCTOR', 'dr. Anisa Rahma, Sp.A', TRUE),
-('55555555-5555-5555-5555-555555555555', 'dr.citra', 'dr.citra@simrs.hospital.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'DOCTOR', 'dr. Citra Lestari, Sp.OG', TRUE),
-('66666666-6666-6666-6666-666666666666', 'petugas.farmasi', 'farmasi@simrs.hospital.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'PHARMACY', 'Ahmad Fauzi, S.Farm., Apt.', TRUE),
-('77777777-7777-7777-7777-777777777777', 'petugas.lab', 'lab@simrs.hospital.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'LABORATORY', 'Dewi Sartika, A.Md.AK', TRUE),
-('88888888-8888-8888-8888-888888888888', 'kasir', 'kasir@simrs.hospital.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'CASHIER', 'Maya Anggraini, S.Ak.', TRUE)
+('11111111-1111-1111-1111-111111111111', 'admin', 'admin@simrs.hospital.id', '$2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6', 'ADMIN', 'Super Administrator, S.Kom', TRUE),
+('22222222-2222-2222-2222-222222222222', 'petugas.pendaftaran', 'pendaftaran@simrs.hospital.id', '$2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6', 'REGISTRATION', 'Rina Wulandari, A.Md.RMIK', TRUE),
+('33333333-3333-3333-3333-333333333333', 'dr.budi', 'dr.budi@simrs.hospital.id', '$2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6', 'DOCTOR', 'dr. Budi Santoso, Sp.PD', TRUE),
+('44444444-4444-4444-4444-444444444444', 'dr.anisa', 'dr.anisa@simrs.hospital.id', '$2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6', 'DOCTOR', 'dr. Anisa Rahma, Sp.A', TRUE),
+('55555555-5555-5555-5555-555555555555', 'dr.citra', 'dr.citra@simrs.hospital.id', '$2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6', 'DOCTOR', 'dr. Citra Lestari, Sp.OG', TRUE),
+('66666666-6666-6666-6666-666666666666', 'petugas.farmasi', 'farmasi@simrs.hospital.id', '$2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6', 'PHARMACY', 'Ahmad Fauzi, S.Farm., Apt.', TRUE),
+('77777777-7777-7777-7777-777777777777', 'petugas.lab', 'lab@simrs.hospital.id', '$2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6', 'LABORATORY', 'Dewi Sartika, A.Md.AK', TRUE),
+('88888888-8888-8888-8888-888888888888', 'kasir', 'kasir@simrs.hospital.id', '$2y$12$FloKAQ9trGlDfcVqufsne.9.nvecqZI6ZPIefRUE05b680PdBW3G6', 'CASHIER', 'Maya Anggraini, S.Ak.', TRUE)
 ON CONFLICT (username) DO NOTHING;
 
 -- 3. POLYCLINICS
