@@ -222,7 +222,9 @@ class BillingService
 
         $idempotencyKey = trim((string) $data['idempotency_key']);
         $amount = (float) ($data['amount'] ?? 0);
-        $method = $data['payment_method'] ?? 'CASH';
+        $method = strtoupper(trim((string) ($data['payment_method'] ?? 'CASH')));
+        if ($method === 'DEBIT') $method = 'DEBIT_CARD';
+        if ($method === 'TRANSFER') $method = 'BANK_TRANSFER';
         $refNo = $data['reference_no'] ?? null;
 
         if ($amount <= 0) {

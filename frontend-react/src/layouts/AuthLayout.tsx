@@ -35,7 +35,7 @@ export const AuthLayout: React.FC = () => {
             pemeriksaan dokter (EMR/SOAP), farmasi dispensing dengan kontrol stok aman, hingga kasir dan pelunasan invoice.
           </p>
 
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800">
+          {/* <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
               <span className="text-xs text-slate-300">Pencegahan Pendaftaran Ganda</span>
@@ -52,7 +52,7 @@ export const AuthLayout: React.FC = () => {
               <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
               <span className="text-xs text-slate-300">Kepatuhan RBAC 6 Peran</span>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Bottom Metadata */}

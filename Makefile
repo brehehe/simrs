@@ -169,6 +169,12 @@ simrs-serve-node: ## Run Node.js Supporting Service on http://127.0.0.1:3001
 simrs-serve-frontend: ## Run React Vite Frontend dev server on http://localhost:5173
 	cd frontend-react && npm run dev
 
+simrs-simulate: ## Run full-day hospital operational workflow simulation
+	@php scripts/simulate_day.php
+
+simrs-benchmark: ## Run high-concurrency stress test (Critical Cases 1, 2, 3)
+	@php scripts/benchmark_concurrency.php
+
 simrs-db-seed: ## Re-seed PostgreSQL database simrs_db with clinical mock data
 	psql -U simrs_core -d simrs_db -h 127.0.0.1 -f database/seeds.sql
 

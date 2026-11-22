@@ -90,9 +90,9 @@ class RegistrationService
             $queueNumber = (int) ($counterRow['last_number'] ?? 1);
             $queueDisplay = $poly['queue_prefix'] . str_pad((string) $queueNumber, 3, '0', STR_PAD_LEFT);
 
-            // Generate visit_number: REG-YYYYMMDD-XXXXX
+            // Generate visit_number: REG-YYYYMMDD-PXXXX (Unique hospital-wide)
             $dateClean = str_replace('-', '', $visitDate);
-            $visitNumber = "REG-{$dateClean}-" . str_pad((string) $queueNumber, 4, '0', STR_PAD_LEFT);
+            $visitNumber = "REG-{$dateClean}-" . $poly['queue_prefix'] . str_pad((string) $queueNumber, 4, '0', STR_PAD_LEFT);
 
             // Simpan ke tabel visits
             $insertSql = "
