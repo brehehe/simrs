@@ -144,4 +144,43 @@ class PharmacyDispensationService
             throw $e;
         }
     }
+
+    public function getPrescriptions(?string $status = null): array
+    {
+        $where = "WHERE 1=1";
+        $params = [];
+        if (!empty($status)) {
+            $where .= " AND p.status = :status";
+            $params[':status'] = $status;
+        }
+
+        $prescriptions = Database::fetchAll("
+            SELECT 
+                p.id, p.prescription_number, p.visit_id, p.status, p.notes, p.created_at,
+                d.full_name AS doctor_name,
+                pt.full_name AS patient_name, pt.mr_number,
+                v.visit_number
+            FROM prescriptions p
+            JOIN visits v ON v.id = p.visit_id
+            JOIN patients pt ON pt.id = v.patient_id
+            JOIN medical_staff d ON d.id = p.doctor_id
+            {$where}
+            ORDER BY p.created_at DESC
+        ", $params);
+
+        foreach ($prescriptions as &$rx) {
+            $items = Database::fetchAll("
+                SELECT 
+                    pi.id, pi.medicine_id, pi.quantity, pi.dosage, pi.frequency, 
+                    pi.snapshot_price, (pi.quantity * pi.snapshot_price) AS subtotal,
+                    m.name AS medicine_name, m.unit, m.current_stock
+                FROM prescription_items pi
+                JOIN medicines m ON m.id = pi.medicine_id
+                WHERE pi.prescription_id = :rxid
+            ", [':rxid' => $rx['id']]);
+            $rx['items'] = $items;
+        }
+
+        return $prescriptions;
+    }
 }

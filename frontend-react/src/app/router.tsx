@@ -7,6 +7,12 @@ import { DashboardLayout } from '../layouts/DashboardLayout';
 import { SplashPage } from '../pages/SplashPage';
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { RegistrationPage } from '../pages/RegistrationPage';
+import { PatientListPage } from '../pages/PatientListPage';
+import { QueueListPage } from '../pages/QueueListPage';
+import { DoctorExaminationPage } from '../pages/DoctorExaminationPage';
+import { PharmacyPage } from '../pages/PharmacyPage';
+import { CashierBillingPage } from '../pages/CashierBillingPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
@@ -66,15 +72,39 @@ export const router = createBrowserRouter([
             path: '/dashboard',
             element: <DashboardPage />,
           },
-          // Route stubs that render DashboardPage for now until respective modules are implemented
-          { path: '/patients', element: <DashboardPage /> },
-          { path: '/registration', element: <DashboardPage /> },
-          { path: '/queue', element: <DashboardPage /> },
-          { path: '/doctor/queue', element: <DashboardPage /> },
-          { path: '/doctor/examination', element: <DashboardPage /> },
-          { path: '/pharmacy/prescriptions', element: <DashboardPage /> },
-          { path: '/lab/orders', element: <DashboardPage /> },
-          { path: '/cashier/invoices', element: <DashboardPage /> },
+          // 1. Patient & Registration
+          { path: '/patients', element: <PatientListPage /> },
+          { path: '/registration', element: <RegistrationPage /> },
+
+          // 2. Queue & Antrean
+          { path: '/queue', element: <QueueListPage /> },
+          { path: '/doctor/queue', element: <QueueListPage /> },
+
+          // 3. Clinical Examination (EMR)
+          { path: '/doctor/examination', element: <DoctorExaminationPage /> },
+          { path: '/doctor/prescriptions', element: <PharmacyPage /> },
+          { path: '/doctor/lab-orders', element: <DoctorExaminationPage /> },
+          { path: '/lab/orders', element: <DoctorExaminationPage /> },
+
+          // 4. Pharmacy & Dispensing
+          { path: '/pharmacy/prescriptions', element: <PharmacyPage /> },
+          { path: '/pharmacy/dispensations', element: <PharmacyPage /> },
+          { path: '/pharmacy/stocks', element: <PharmacyPage /> },
+
+          // 5. Cashier & Invoicing
+          { path: '/cashier/invoices', element: <CashierBillingPage /> },
+          { path: '/cashier/payments', element: <CashierBillingPage /> },
+          { path: '/cashier/history', element: <CashierBillingPage /> },
+
+          // Master Data fallbacks
+          { path: '/staff', element: <DashboardPage /> },
+          { path: '/polyclinics', element: <RegistrationPage /> },
+          { path: '/schedules', element: <RegistrationPage /> },
+          { path: '/procedures', element: <DoctorExaminationPage /> },
+          { path: '/medicines', element: <PharmacyPage /> },
+          { path: '/users', element: <DashboardPage /> },
+          { path: '/audit-logs', element: <DashboardPage /> },
+
           {
             path: '/forbidden',
             element: <ForbiddenPage />,

@@ -8,6 +8,7 @@ use App\Controllers\VisitController;
 use App\Controllers\ClinicalController;
 use App\Controllers\PharmacyController;
 use App\Controllers\BillingController;
+use App\Controllers\InternalApiController;
 use App\Controllers\CorsController;
 use App\Web;
 use Yiisoft\Router\Group;
@@ -116,6 +117,9 @@ return [
                 ->name('api.visits.lab_orders.list'),
 
             // 5. Pharmacy Endpoints
+            Route::get('/api/v1/prescriptions')
+                ->action([PharmacyController::class, 'list'])
+                ->name('api.prescriptions.list'),
             Route::post('/api/v1/prescriptions/{id}/dispense')
                 ->action([PharmacyController::class, 'dispense'])
                 ->name('api.prescriptions.dispense'),
@@ -133,5 +137,10 @@ return [
             Route::get('/api/v1/payments/{id}/receipt')
                 ->action([BillingController::class, 'getReceipt'])
                 ->name('api.payments.receipt'),
+
+            // 7. Internal Gateway Endpoints (Node.js <-> Yii Core)
+            Route::post('/internal-api/v1/lab-results')
+                ->action([InternalApiController::class, 'receiveLabResults'])
+                ->name('api.internal.lab_results'),
         ),
 ];

@@ -10,7 +10,9 @@ interface AlertDialogProps {
   title: string;
   description: string;
   confirmLabel?: string;
+  confirmText?: string;
   cancelLabel?: string;
+  cancelText?: string;
   isLoading?: boolean;
   variant?: 'danger' | 'warning' | 'primary';
 }
@@ -21,11 +23,16 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
   onConfirm,
   title,
   description,
-  confirmLabel = 'Konfirmasi',
-  cancelLabel = 'Batal',
+  confirmLabel,
+  confirmText,
+  cancelLabel,
+  cancelText,
   isLoading = false,
   variant = 'danger',
 }) => {
+  const finalConfirmLabel = confirmText || confirmLabel || 'Konfirmasi';
+  const finalCancelLabel = cancelText || cancelLabel || 'Batal';
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="sm">
       <div className="flex flex-col items-center text-center space-y-4">
@@ -52,16 +59,16 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
             onClick={onClose}
             disabled={isLoading}
           >
-            {cancelLabel}
+            {finalCancelLabel}
           </Button>
           <Button
             type="button"
-            variant={variant === 'danger' ? 'danger' : 'primary'}
+            variant={variant === 'warning' ? 'secondary' : variant}
             className="flex-1"
             onClick={onConfirm}
             isLoading={isLoading}
           >
-            {confirmLabel}
+            {finalConfirmLabel}
           </Button>
         </div>
       </div>

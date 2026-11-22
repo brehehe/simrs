@@ -22,6 +22,18 @@ class PharmacyController
         $this->service = new PharmacyDispensationService();
     }
 
+    public function list(ServerRequestInterface $request): ResponseInterface
+    {
+        $params = $request->getQueryParams();
+        $status = $params['status'] ?? null;
+        try {
+            $data = $this->service->getPrescriptions($status);
+            return ResponseHelper::success($data, "Daftar resep berhasil diambil.");
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
+
     public function dispense(ServerRequestInterface $request, ?CurrentRoute $currentRoute = null): ResponseInterface
     {
         $id = $currentRoute?->getArgument('id') ?? $request->getAttribute('id');

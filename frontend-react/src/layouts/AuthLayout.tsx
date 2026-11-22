@@ -24,11 +24,11 @@ export const AuthLayout: React.FC = () => {
 
         {/* Center Presentation */}
         <div className="relative z-10 space-y-6 max-w-lg my-auto">
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+          {/* <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30">
             <ShieldCheck className="w-4 h-4" /> Real Case Test — Senior Programmer
-          </span>
+          </span> */}
           <h2 className="text-3xl font-extrabold tracking-tight leading-tight">
-            Sistem Informasi Pelayanan Rawat Jalan Terintegrasi End-to-End
+            Sistem Informasi Pelayanan Rawat Jalan
           </h2>
           <p className="text-slate-400 text-sm leading-relaxed">
             Menghubungkan seluruh alur medis dan administratif rumah sakit dari pendaftaran antrean,
@@ -56,12 +56,12 @@ export const AuthLayout: React.FC = () => {
         </div>
 
         {/* Bottom Metadata */}
-        <div className="relative z-10 flex items-center justify-between text-xs text-slate-500 pt-6 border-t border-slate-800">
+        {/* <div className="relative z-10 flex items-center justify-between text-xs text-slate-500 pt-6 border-t border-slate-800">
           <span>Target Waktu: 72 Jam MVP Terverifikasi</span>
           <span className="flex items-center gap-1.5 text-slate-400">
             <Clock className="w-3.5 h-3.5 text-teal-400" /> PostgreSQL 17 + Yii + React
           </span>
-        </div>
+        </div> */}
       </div>
 
       {/* Right Column: Dynamic Screen Container (Login form, etc.) */}
