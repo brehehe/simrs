@@ -2,6 +2,17 @@
 
 declare(strict_types=1);
 
+// Global CORS headers for cross-origin requests from Frontend (Port 5173 -> Port 8080)
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Idempotency-Key, X-Internal-Secret');
+
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Max-Age: 86400');
+    http_response_code(204);
+    exit(0);
+}
+
 use App\Environment;
 use Psr\Log\LogLevel;
 use Yiisoft\ErrorHandler\ErrorHandler;

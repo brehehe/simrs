@@ -152,4 +152,14 @@ class MasterDataController
             return ResponseHelper::error($e->getMessage(), 500);
         }
     }
+
+    public function getUsers(): ResponseInterface
+    {
+        try {
+            $data = $this->service->getUsers();
+            return ResponseHelper::success($data, "Daftar pengguna sistem berhasil diambil.");
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
 }

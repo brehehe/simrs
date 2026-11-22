@@ -19,6 +19,14 @@ import { CashierBillingPage } from '../pages/CashierBillingPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { AuditTrailPage } from '../pages/AuditTrailPage';
 import { SatuSehatPage } from '../pages/SatuSehatPage';
+import { DoctorSchedulesPage } from '../pages/DoctorSchedulesPage';
+import { PolyclinicsPage } from '../pages/PolyclinicsPage';
+import { MedicalStaffPage } from '../pages/MedicalStaffPage';
+import { ProceduresTariffPage } from '../pages/ProceduresTariffPage';
+import { PharmacyStocksPage } from '../pages/PharmacyStocksPage';
+import { PharmacyDispensationsPage } from '../pages/PharmacyDispensationsPage';
+import { CashierPaymentsHistoryPage } from '../pages/CashierPaymentsHistoryPage';
+import { UsersManagementPage } from '../pages/UsersManagementPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
@@ -107,13 +115,13 @@ export const router = createBrowserRouter([
 
           // 5. Pharmacy & Dispensing
           { path: '/pharmacy/prescriptions', element: <PharmacyPage /> },
-          { path: '/pharmacy/dispensations', element: <PharmacyPage /> },
-          { path: '/pharmacy/stocks', element: <PharmacyPage /> },
+          { path: '/pharmacy/dispensations', element: <PharmacyDispensationsPage /> },
+          { path: '/pharmacy/stocks', element: <PharmacyStocksPage /> },
 
           // 6. Cashier & Invoicing
           { path: '/cashier/invoices', element: <CashierBillingPage /> },
-          { path: '/cashier/payments', element: <CashierBillingPage /> },
-          { path: '/cashier/history', element: <CashierBillingPage /> },
+          { path: '/cashier/payments', element: <CashierPaymentsHistoryPage /> },
+          { path: '/cashier/history', element: <CashierPaymentsHistoryPage /> },
 
           // 7. Clinical & Financial Reports (Kemenkes RL 5.3)
           { path: '/reports', element: <ReportsPage /> },
@@ -121,13 +129,13 @@ export const router = createBrowserRouter([
           // 8. SATUSEHAT Kemenkes RI Hub & Monitoring
           { path: '/satusehat', element: <SatuSehatPage /> },
 
-          // Master Data fallbacks
-          { path: '/staff', element: <DashboardPage /> },
-          { path: '/polyclinics', element: <RegistrationPage /> },
-          { path: '/schedules', element: <RegistrationPage /> },
-          { path: '/procedures', element: <DoctorExaminationPage /> },
-          { path: '/medicines', element: <PharmacyPage /> },
-          { path: '/users', element: <DashboardPage /> },
+          // 9. Master Data & Staff Management
+          { path: '/staff', element: <MedicalStaffPage /> },
+          { path: '/polyclinics', element: <PolyclinicsPage /> },
+          { path: '/schedules', element: <DoctorSchedulesPage /> },
+          { path: '/procedures', element: <ProceduresTariffPage /> },
+          { path: '/medicines', element: <PharmacyStocksPage /> },
+          { path: '/users', element: <UsersManagementPage /> },
           { path: '/audit-logs', element: <AuditTrailPage /> },
 
           {

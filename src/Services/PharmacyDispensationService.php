@@ -182,9 +182,10 @@ class PharmacyDispensationService
                 SELECT 
                     pi.id, pi.medicine_id, pi.quantity, pi.dosage, pi.frequency, 
                     pi.snapshot_price, (pi.quantity * pi.snapshot_price) AS subtotal,
-                    m.name AS medicine_name, m.unit, m.current_stock
+                    m.name AS medicine_name, m.unit, COALESCE(ms.current_stock, 0) AS current_stock
                 FROM prescription_items pi
                 JOIN medicines m ON m.id = pi.medicine_id
+                LEFT JOIN medicine_stocks ms ON ms.medicine_id = m.id
                 WHERE pi.prescription_id = :rxid
             ", [':rxid' => $rx['id']]);
             $rx['items'] = $items;

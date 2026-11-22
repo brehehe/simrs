@@ -185,4 +185,15 @@ class MasterDataService
             SELECT id, code, description FROM diagnoses {$where} ORDER BY code ASC LIMIT 50
         ", $params);
     }
+
+    public function getUsers(): array
+    {
+        return Database::fetchAll("
+            SELECT u.id, u.username, u.email, u.full_name, u.role_code, r.name as role_name,
+                   u.is_active, u.created_at
+            FROM users u
+            JOIN roles r ON r.code = u.role_code
+            ORDER BY u.created_at ASC
+        ");
+    }
 }

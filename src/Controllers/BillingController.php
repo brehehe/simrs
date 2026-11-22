@@ -137,4 +137,28 @@ class BillingController
             return ResponseHelper::error($e->getMessage(), 500);
         }
     }
+
+    public function listPayments(ServerRequestInterface $request): ResponseInterface
+    {
+        $params = $request->getQueryParams();
+        $limit = isset($params['limit']) ? (int) $params['limit'] : 50;
+
+        try {
+            $payments = Database::fetchAll("
+                SELECT p.*, inv.invoice_number, inv.total_amount, inv.status AS invoice_status,
+                       pt.full_name AS patient_name, pt.mr_number,
+                       u.full_name AS cashier_name
+                FROM payments p
+                JOIN invoices inv ON inv.id = p.invoice_id
+                JOIN patients pt ON pt.id = inv.patient_id
+                JOIN users u ON u.id = p.cashier_id
+                ORDER BY p.paid_at DESC
+                LIMIT :limit
+            ", [':limit' => $limit]);
+
+            return ResponseHelper::success($payments, "Riwayat transaksi pembayaran kasir berhasil diambil.");
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
 }

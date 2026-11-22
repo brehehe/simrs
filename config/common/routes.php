@@ -73,6 +73,9 @@ return [
             Route::get('/api/v1/diagnoses')
                 ->action([MasterDataController::class, 'getDiagnoses'])
                 ->name('api.diagnoses.list'),
+            Route::get('/api/v1/users')
+                ->action([MasterDataController::class, 'getUsers'])
+                ->name('api.users.list'),
 
             // 3. Visits & Queue Management Endpoints
             Route::post('/api/v1/visits')
@@ -141,6 +144,9 @@ return [
             Route::get('/api/v1/payments/{id}/receipt')
                 ->action([BillingController::class, 'getReceipt'])
                 ->name('api.payments.receipt'),
+            Route::get('/api/v1/payments')
+                ->action([BillingController::class, 'listPayments'])
+                ->name('api.payments.list'),
             Route::post('/api/v1/invoices/{id}/adjustments')
                 ->action([BillingController::class, 'createAdjustment'])
                 ->name('api.invoices.adjustments.create'),
