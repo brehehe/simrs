@@ -159,6 +159,12 @@ simrs-test: ## Run full SIMRS verification tests (Yii 54 + FHIR 28 + Node 11 = 9
 simrs-satusehat-test: ## Run SATUSEHAT FHIR R4 and BPJS VClaim test suite
 	@php tests/satusehat_fhir_test.php
 
+simrs-e2e: ## Run Master End-to-End Acceptance Test (21 stages)
+	@php scripts/e2e_acceptance_test.php
+
+simrs-demo: ## Launch Interactive Terminal Demo Runner & Control Center
+	@bash scripts/simrs_menu.sh
+
 simrs-build: ## Build both supporting Node service and React frontend
 	@echo "Building Node.js Supporting Backend..."
 	@cd backend-node && npm run build

@@ -92,8 +92,12 @@ class BillingService
                 ]);
             } else {
                 $dateClean = date('Ymd');
-                $randSuffix = str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
-                $invoiceNumber = "INV-{$dateClean}-{$randSuffix}";
+                do {
+                    $countRow = Database::fetchOne("SELECT count(*) as c FROM invoices WHERE invoice_number LIKE :p", [':p' => "INV-{$dateClean}-%"]);
+                    $nextSeq = ((int)($countRow['c'] ?? 0)) + 1;
+                    $invoiceNumber = sprintf("INV-%s-%04d%02d", $dateClean, $nextSeq, mt_rand(10, 99));
+                    $exists = Database::fetchOne("SELECT id FROM invoices WHERE invoice_number = :num", [':num' => $invoiceNumber]);
+                } while ($exists);
 
                 $insertSql = "
                     INSERT INTO invoices (
@@ -280,8 +284,12 @@ class BillingService
 
             // 3. Simpan Pembayaran
             $dateClean = date('Ymd');
-            $randSuffix = str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
-            $payNumber = "PAY-{$dateClean}-{$randSuffix}";
+            do {
+                $countPay = Database::fetchOne("SELECT count(*) as c FROM payments WHERE payment_number LIKE :p", [':p' => "PAY-{$dateClean}-%"]);
+                $nextPaySeq = ((int)($countPay['c'] ?? 0)) + 1;
+                $payNumber = sprintf("PAY-%s-%04d%02d", $dateClean, $nextPaySeq, mt_rand(10, 99));
+                $existsPay = Database::fetchOne("SELECT id FROM payments WHERE payment_number = :num", [':num' => $payNumber]);
+            } while ($existsPay);
 
             $insertPaymentSql = "
                 INSERT INTO payments (

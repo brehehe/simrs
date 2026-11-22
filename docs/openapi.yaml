@@ -338,6 +338,116 @@ paths:
         '422':
           description: Validasi format data Zod gagal
 
+  # ---------------------------------------------------------------------------
+  # SATUSEHAT KEMENKES RI (HL7 FHIR R4) & RESUME MEDIS
+  # ---------------------------------------------------------------------------
+  /visits/{id}/fhir-bundle:
+    get:
+      tags: [SATUSEHAT & Kemenkes RI]
+      summary: Ekstraksi HL7 FHIR R4 Bundle untuk SATUSEHAT Kemenkes RI
+      description: Membentuk Bundle bertipe collection berisi Patient, Encounter, Condition (ICD-10), Observation (LOINC), MedicationRequest, dan DiagnosticReport.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: FHIR R4 Bundle JSON berhasil dibentuk
+        '404':
+          description: Kunjungan tidak ditemukan
+
+  /visits/{id}/satusehat-sync:
+    post:
+      tags: [SATUSEHAT & Kemenkes RI]
+      summary: Transmisi & Sinkronisasi Bundle RME ke Platform SATUSEHAT
+      description: Mengirimkan bundle RME ke gateway SATUSEHAT dan menerbitkan IHS Resource IDs (IHS-ENC-XXXX, IHS-PAT-XXXX).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Sinkronisasi SATUSEHAT berhasil
+
+  /visits/{id}/satusehat-logs:
+    get:
+      tags: [SATUSEHAT & Kemenkes RI]
+      summary: Riwayat Log Transmisi SATUSEHAT Kemenkes RI
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Daftar log riwayat transmisi
+
+  /visits/{id}/resume-medis:
+    get:
+      tags: [SATUSEHAT & Kemenkes RI]
+      summary: Ringkasan Pulang Rawat Jalan (Resume Medis) Standar KARS/STARKES
+      description: Mengambil berkas resume medis lengkap dengan anamnesis, vital signs, ICD-10, tindakan, e-resep, dan digital signature QR hash DPJP.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Berkas Resume Medis berhasil diambil
+
+  # ---------------------------------------------------------------------------
+  # BPJS KESEHATAN VCLAIM 2.0 WEB SERVICE STUBS
+  # ---------------------------------------------------------------------------
+  /bpjs/peserta/{identifier}:
+    get:
+      tags: [BPJS Kesehatan VClaim]
+      summary: Verifikasi Status Kepesertaan BPJS via NIK / No. Kartu
+      parameters:
+        - in: path
+          name: identifier
+          required: true
+          schema:
+            type: string
+          example: '320101199001010001'
+      responses:
+        '200':
+          description: Status kepesertaan BPJS aktif
+
+  /bpjs/sep:
+    post:
+      tags: [BPJS Kesehatan VClaim]
+      summary: Penerbitan Otomatis Surat Eligibilitas Peserta (SEP) Rawat Jalan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [no_kartu, polyclinic_name]
+              properties:
+                no_kartu:
+                  type: string
+                patient_name:
+                  type: string
+                polyclinic_name:
+                  type: string
+                diagnosa_awal:
+                  type: string
+      responses:
+        '201':
+          description: SEP Rawat Jalan berhasil diterbitkan (format 0101R001...)
+
 components:
   securitySchemes:
     bearerAuth:

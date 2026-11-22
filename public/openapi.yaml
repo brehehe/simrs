@@ -1,0 +1,669 @@
+openapi: 3.0.3
+info:
+  title: SIMRS Rawat Jalan Terintegrasi API
+  description: >
+    Spesifikasi REST API Sistem Informasi Manajemen Rumah Sakit (SIMRS) Rawat Jalan Terintegrasi.
+    PT Inova Medika Solusindo — Real Case Test (Senior Programmer).
+    Mencakup alur lengkap: Pendaftaran Pasien, Antrean Poliklinik, Rekam Medis Elektronik (SOAP),
+    Tindakan Medis, E-Resep Farmasi, Permintaan Laboratorium, dan Kasir Billing.
+  version: 1.0.0
+  contact:
+    name: Tim Pengembang SIMRS
+    email: dev@inovamedika.com
+
+servers:
+  - url: http://127.0.0.1:8080/api/v1
+    description: Core Backend Yii Framework (Single Source of Truth)
+  - url: http://127.0.0.1:3001/api/v1
+    description: Supporting Backend Node.js Express (Lab Gateway & Read-only Dashboard)
+
+tags:
+  - name: Authentication
+    description: Autentikasi JWT dan profil pengguna
+  - name: Master Data
+    description: Master data poliklinik, dokter, tindakan medis, obat, dan diagnosa ICD-10
+  - name: Patients
+    description: Manajemen data rekam medis pasien
+  - name: Visits & Queues
+    description: Pendaftaran rawat jalan dan nomor antrean poliklinik
+  - name: Clinical & EMR
+    description: Rekam medis SOAP, diagnosa ICD-10, tindakan medis, e-resep, dan lab order
+  - name: Pharmacy
+    description: Dispensing obat dan mutasi persediaan dengan row-level locking
+  - name: Billing & Cashier
+    description: Konsolidasi tagihan dan transaksi pembayaran kasir idempoten
+  - name: Integrations & Gateway
+    description: Ingesti hasil laboratorium eksternal via Node.js
+  - name: Dashboard Analytics
+    description: Agregasi analitik performa tinggi read-only
+
+paths:
+  # ---------------------------------------------------------------------------
+  # AUTHENTICATION
+  # ---------------------------------------------------------------------------
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login pengguna sistem SIMRS
+      description: Memverifikasi username dan password, mengembalikan token JWT stateless.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  example: dr.budi
+                password:
+                  type: string
+                  example: Password123!
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Kredensial tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Profil pengguna terautentikasi
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Informasi pengguna saat ini
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  # ---------------------------------------------------------------------------
+  # PATIENTS
+  # ---------------------------------------------------------------------------
+  /patients:
+    get:
+      tags: [Patients]
+      summary: Daftar data pasien rekam medis
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Cari berdasarkan No. RM, NIK, atau Nama Pasien
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Daftar pasien berhasil diambil
+    post:
+      tags: [Patients]
+      summary: Registrasi pasien baru
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientCreateInput'
+      responses:
+        '201':
+          description: Pasien berhasil didaftarkan dengan nomor RM otomatis
+        '409':
+          description: NIK sudah terdaftar dalam sistem
+
+  # ---------------------------------------------------------------------------
+  # VISITS & QUEUES
+  # ---------------------------------------------------------------------------
+  /visits:
+    get:
+      tags: [Visits & Queues]
+      summary: Daftar antrean kunjungan pasien
+      parameters:
+        - name: visit_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: '2026-11-22'
+        - name: polyclinic_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [WAITING, IN_EXAMINATION, WAITING_PHARMACY, WAITING_LAB, READY_FOR_BILLING, COMPLETED, CANCELLED]
+      responses:
+        '200':
+          description: Daftar kunjungan antrean hari ini
+    post:
+      tags: [Visits & Queues]
+      summary: Pendaftaran kunjungan rawat jalan & nomor antrean
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VisitCreateInput'
+      responses:
+        '201':
+          description: Kunjungan berhasil didaftarkan dengan nomor antrean atomik
+        '409':
+          description: Pasien sudah memiliki antrean aktif pada poliklinik dan tanggal yang sama
+
+  # ---------------------------------------------------------------------------
+  # CLINICAL & EMR
+  # ---------------------------------------------------------------------------
+  /medical-records:
+    post:
+      tags: [Clinical & EMR]
+      summary: Simpan lembar SOAP dan diagnosa ICD-10
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicalRecordInput'
+      responses:
+        '201':
+          description: Rekam medis berhasil disimpan
+
+  /prescriptions:
+    post:
+      tags: [Clinical & EMR]
+      summary: Buat e-resep dokter
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrescriptionInput'
+      responses:
+        '201':
+          description: E-resep berhasil dibuat dan dikirim ke depo farmasi
+
+  /lab-orders:
+    post:
+      tags: [Clinical & EMR]
+      summary: Buat order pemeriksaan laboratorium
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabOrderInput'
+      responses:
+        '201':
+          description: Order lab berhasil dibuat
+
+  # ---------------------------------------------------------------------------
+  # PHARMACY
+  # ---------------------------------------------------------------------------
+  /prescriptions/{id}/dispense:
+    post:
+      tags: [Pharmacy]
+      summary: Penyerahan obat dengan penguncian baris & pemotongan stok atomik
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+                  example: Obat telah diserahkan lengkap dan diedukasikan.
+      responses:
+        '200':
+          description: Obat berhasil diserahkan dan stok dipotong secara atomik
+        '422':
+          description: Stok obat tidak mencukupi untuk penyerahan
+
+  # ---------------------------------------------------------------------------
+  # BILLING & CASHIER
+  # ---------------------------------------------------------------------------
+  /invoices/visit/{visitId}:
+    get:
+      tags: [Billing & Cashier]
+      summary: Dapatkan atau konsolidasikan invoice tagihan kunjungan
+      parameters:
+        - name: visitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Rincian invoice tagihan dengan snapshot tarif terjamin
+
+  /invoices/{id}/payments:
+    post:
+      tags: [Billing & Cashier]
+      summary: Proses pembayaran tagihan kasir idempoten
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Kunci unik idempoten untuk mencegah tagihan ganda
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, payment_method]
+              properties:
+                amount:
+                  type: number
+                  example: 275000
+                payment_method:
+                  type: string
+                  enum: [CASH, QRIS, DEBIT, TRANSFER]
+                  example: CASH
+                reference_no:
+                  type: string
+                  example: REF-889921
+      responses:
+        '201':
+          description: Pembayaran kasir berhasil diproses
+        '200':
+          description: Respon idempoten (transaksi sudah dicatat sebelumnya tanpa duplikasi pemotongan)
+
+  # ---------------------------------------------------------------------------
+  # INTEGRATIONS & GATEWAY (NODE.JS)
+  # ---------------------------------------------------------------------------
+  /integrations/lab-results:
+    post:
+      tags: [Integrations & Gateway]
+      summary: Webhook penerimaan hasil lab dari mesin analyzer eksternal
+      description: Divalidasi oleh Node.js via skema Zod dan diteruskan dengan backoff retry ke Yii Core.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabResultsIngestInput'
+      responses:
+        '200':
+          description: Hasil lab berhasil diterima dan disinkronkan ke SIMRS Core
+        '422':
+          description: Validasi format data Zod gagal
+
+  # ---------------------------------------------------------------------------
+  # SATUSEHAT KEMENKES RI (HL7 FHIR R4) & RESUME MEDIS
+  # ---------------------------------------------------------------------------
+  /visits/{id}/fhir-bundle:
+    get:
+      tags: [SATUSEHAT & Kemenkes RI]
+      summary: Ekstraksi HL7 FHIR R4 Bundle untuk SATUSEHAT Kemenkes RI
+      description: Membentuk Bundle bertipe collection berisi Patient, Encounter, Condition (ICD-10), Observation (LOINC), MedicationRequest, dan DiagnosticReport.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: FHIR R4 Bundle JSON berhasil dibentuk
+        '404':
+          description: Kunjungan tidak ditemukan
+
+  /visits/{id}/satusehat-sync:
+    post:
+      tags: [SATUSEHAT & Kemenkes RI]
+      summary: Transmisi & Sinkronisasi Bundle RME ke Platform SATUSEHAT
+      description: Mengirimkan bundle RME ke gateway SATUSEHAT dan menerbitkan IHS Resource IDs (IHS-ENC-XXXX, IHS-PAT-XXXX).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Sinkronisasi SATUSEHAT berhasil
+
+  /visits/{id}/satusehat-logs:
+    get:
+      tags: [SATUSEHAT & Kemenkes RI]
+      summary: Riwayat Log Transmisi SATUSEHAT Kemenkes RI
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Daftar log riwayat transmisi
+
+  /visits/{id}/resume-medis:
+    get:
+      tags: [SATUSEHAT & Kemenkes RI]
+      summary: Ringkasan Pulang Rawat Jalan (Resume Medis) Standar KARS/STARKES
+      description: Mengambil berkas resume medis lengkap dengan anamnesis, vital signs, ICD-10, tindakan, e-resep, dan digital signature QR hash DPJP.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Berkas Resume Medis berhasil diambil
+
+  # ---------------------------------------------------------------------------
+  # BPJS KESEHATAN VCLAIM 2.0 WEB SERVICE STUBS
+  # ---------------------------------------------------------------------------
+  /bpjs/peserta/{identifier}:
+    get:
+      tags: [BPJS Kesehatan VClaim]
+      summary: Verifikasi Status Kepesertaan BPJS via NIK / No. Kartu
+      parameters:
+        - in: path
+          name: identifier
+          required: true
+          schema:
+            type: string
+          example: '320101199001010001'
+      responses:
+        '200':
+          description: Status kepesertaan BPJS aktif
+
+  /bpjs/sep:
+    post:
+      tags: [BPJS Kesehatan VClaim]
+      summary: Penerbitan Otomatis Surat Eligibilitas Peserta (SEP) Rawat Jalan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [no_kartu, polyclinic_name]
+              properties:
+                no_kartu:
+                  type: string
+                patient_name:
+                  type: string
+                polyclinic_name:
+                  type: string
+                diagnosa_awal:
+                  type: string
+      responses:
+        '201':
+          description: SEP Rawat Jalan berhasil diterbitkan (format 0101R001...)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Login berhasil.
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+            user:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                username:
+                  type: string
+                full_name:
+                  type: string
+                role:
+                  type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        code:
+          type: string
+
+    UserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    PatientCreateInput:
+      type: object
+      required: [nik, full_name, birth_date, gender, address]
+      properties:
+        nik:
+          type: string
+          minLength: 16
+          maxLength: 16
+          example: '3273011205850001'
+        full_name:
+          type: string
+          example: 'Ahmad Dahlan'
+        birth_date:
+          type: string
+          format: date
+          example: '1985-05-12'
+        gender:
+          type: string
+          enum: [MALE, FEMALE]
+          example: 'MALE'
+        phone:
+          type: string
+          example: '081234567890'
+        address:
+          type: string
+          example: 'Jl. Merdeka No. 45, Bandung'
+
+    VisitCreateInput:
+      type: object
+      required: [patient_id, polyclinic_id, doctor_id, visit_date]
+      properties:
+        patient_id:
+          type: string
+          format: uuid
+        polyclinic_id:
+          type: string
+          format: uuid
+        doctor_id:
+          type: string
+          format: uuid
+        visit_date:
+          type: string
+          format: date
+          example: '2026-11-22'
+
+    MedicalRecordInput:
+      type: object
+      required: [visit_id, primary_diagnosis_id, subjective, objective, assessment, plan]
+      properties:
+        visit_id:
+          type: string
+          format: uuid
+        primary_diagnosis_id:
+          type: string
+          format: uuid
+        secondary_diagnosis_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        subjective:
+          type: string
+        objective:
+          type: string
+        systolic_bp:
+          type: integer
+          example: 120
+        diastolic_bp:
+          type: integer
+          example: 80
+        pulse_rate:
+          type: integer
+          example: 76
+        respiratory_rate:
+          type: integer
+          example: 18
+        body_temperature:
+          type: number
+          example: 36.6
+        assessment:
+          type: string
+        plan:
+          type: string
+
+    PrescriptionInput:
+      type: object
+      required: [visit_id, items]
+      properties:
+        visit_id:
+          type: string
+          format: uuid
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            required: [medicine_id, dosage, frequency, quantity]
+            properties:
+              medicine_id:
+                type: string
+                format: uuid
+              dosage:
+                type: string
+                example: '500 mg'
+              frequency:
+                type: string
+                example: '3x1 tablet sesudah makan'
+              quantity:
+                type: integer
+                example: 10
+
+    LabOrderInput:
+      type: object
+      required: [visit_id, test_ids]
+      properties:
+        visit_id:
+          type: string
+          format: uuid
+        clinical_notes:
+          type: string
+        test_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    LabResultsIngestInput:
+      type: object
+      required: [idempotency_key, lab_order_id, results]
+      properties:
+        idempotency_key:
+          type: string
+          minLength: 8
+          example: 'idemp-lab-20261122-001'
+        lab_order_id:
+          type: string
+          format: uuid
+        verified_by:
+          type: string
+          example: 'Sysmex Analyzer XN-550'
+        results:
+          type: array
+          items:
+            type: object
+            required: [lab_order_item_id, result_value]
+            properties:
+              lab_order_item_id:
+                type: string
+                format: uuid
+              result_value:
+                type: string
+                example: '14.2'
+              unit:
+                type: string
+                example: 'g/dL'
+              normal_range:
+                type: string
+                example: '13.0 - 17.0'
+              status:
+                type: string
+                enum: [PRELIMINARY, FINAL]
+                default: FINAL
+              notes:
+                type: string
