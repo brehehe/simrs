@@ -12,7 +12,9 @@ import {
   ArrowRight,
   UserPlus,
   Clock,
-  QrCode
+  QrCode,
+  ShieldCheck,
+  CreditCard
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card } from '../components/ui/Card';
@@ -21,6 +23,7 @@ import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { patientService, Patient, Polyclinic, Doctor } from '../services/patientService';
 import { visitService, Visit } from '../services/visitService';
+import { apiClient } from '../services/api';
 
 export const RegistrationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -43,6 +46,37 @@ export const RegistrationPage: React.FC = () => {
   const [selectedDoctorId, setSelectedDoctorId] = useState('');
   const [visitDate, setVisitDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Insurance & BPJS VClaim State
+  const [paymentType, setPaymentType] = useState<'UMUM' | 'BPJS'>('UMUM');
+  const [isCheckingBpjs, setIsCheckingBpjs] = useState(false);
+  const [bpjsData, setBpjsData] = useState<any>(null);
+  const [sepNumber, setSepNumber] = useState<string | null>(null);
+
+  const handleVerifyBpjs = async () => {
+    if (!selectedPatient) {
+      toast.error('Pilih pasien terlebih dahulu untuk verifikasi BPJS.');
+      return;
+    }
+    setIsCheckingBpjs(true);
+    try {
+      const res = await apiClient.get(`/bpjs/peserta/${selectedPatient.nik}`);
+      const p = res.data?.data?.peserta;
+      setBpjsData(p);
+      const polyName = polyclinics.find(pol => pol.id === selectedPolyId)?.name || 'Poliklinik Penyakit Dalam';
+      const sepRes = await apiClient.post('/bpjs/sep', {
+        no_kartu: p.noKartu,
+        patient_name: selectedPatient.full_name,
+        polyclinic_name: polyName,
+      });
+      setSepNumber(sepRes.data?.data?.sep?.noSep);
+      toast.success('Status kepesertaan BPJS AKTIF & SEP berhasil diterbitkan!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal verifikasi data BPJS.');
+    } finally {
+      setIsCheckingBpjs(false);
+    }
+  };
 
   // Registration result / Ticket modal
   const [createdVisit, setCreatedVisit] = useState<Visit | null>(null);
@@ -425,11 +459,99 @@ export const RegistrationPage: React.FC = () => {
                   )}
                 </div>
 
+                {/* Penjamin / Jenis Pembayaran */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Penjamin / Jenis Pembayaran <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentType('UMUM')}
+                      className={`p-3 rounded-xl border text-left transition-all flex items-center gap-3 ${
+                        paymentType === 'UMUM'
+                          ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20 font-bold text-teal-900'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <CreditCard className="w-5 h-5 text-teal-600 shrink-0" />
+                      <div>
+                        <div className="text-xs font-bold">UMUM / PRIBADI</div>
+                        <div className="text-[11px] text-slate-500 font-normal">Biaya mandiri per pelayanan</div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentType('BPJS')}
+                      className={`p-3 rounded-xl border text-left transition-all flex items-center gap-3 ${
+                        paymentType === 'BPJS'
+                          ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20 font-bold text-emerald-900'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <div>
+                        <div className="text-xs font-bold">BPJS KESEHATAN</div>
+                        <div className="text-[11px] text-slate-500 font-normal">Integrasi VClaim & SEP</div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {paymentType === 'BPJS' && (
+                    <div className="mt-3 p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                          Verifikasi VClaim 2.0 & Penerbitan SEP Otomatis
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          isLoading={isCheckingBpjs}
+                          onClick={handleVerifyBpjs}
+                          className="text-xs bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-100"
+                        >
+                          Cek & Terbitkan SEP
+                        </Button>
+                      </div>
+
+                      {bpjsData && (
+                        <div className="bg-white p-3 rounded-lg border border-emerald-200 text-xs space-y-1.5">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">No. Kartu BPJS:</span>
+                            <span className="font-mono font-bold text-slate-800">{bpjsData.noKartu}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Status Kepesertaan:</span>
+                            <span className="font-bold text-emerald-700">{bpjsData.statusPeserta?.keterangan} ({bpjsData.hakKelas?.keterangan})</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Fasilitas Kesehatan Tk. 1:</span>
+                            <span className="text-slate-800">{bpjsData.provUmum?.nmProvider}</span>
+                          </div>
+                          {sepNumber && (
+                            <div className="pt-1.5 border-t border-emerald-100 flex justify-between items-center">
+                              <span className="font-bold text-emerald-900">Nomor SEP Resmi:</span>
+                              <span className="font-mono font-bold text-xs px-2 py-0.5 bg-emerald-100 text-emerald-900 rounded">
+                                {sepNumber}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* Registration Summary Box */}
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                   <div className="flex items-center justify-between text-xs text-slate-600">
                     <span>Biaya Pendaftaran / Karcis Rawat Jalan</span>
-                    <span className="font-semibold text-slate-900">Rp 25.000</span>
+                    <span className="font-semibold text-slate-900">
+                      {paymentType === 'BPJS' ? 'Rp 0 (Dijamin BPJS)' : 'Rp 25.000'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-slate-600">
                     <span>Estimasi Waktu Tunggu</span>
@@ -437,7 +559,9 @@ export const RegistrationPage: React.FC = () => {
                   </div>
                   <div className="border-t border-slate-200 pt-2 flex items-center justify-between text-sm font-bold text-slate-900">
                     <span>Total Biaya Registrasi</span>
-                    <span className="text-primary font-mono text-base">Rp 25.000</span>
+                    <span className="text-primary font-mono text-base">
+                      {paymentType === 'BPJS' ? 'Rp 0' : 'Rp 25.000'}
+                    </span>
                   </div>
                 </div>
 

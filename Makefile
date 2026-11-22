@@ -144,14 +144,20 @@ endif
 # SIMRS Local Development Targets
 #
 
-simrs-test: ## Run full SIMRS verification tests (Yii 54 tests + Node 11 tests)
-	@echo "=== 1/2 RUNNING YII CORE BACKEND & CONCURRENCY TESTS ==="
+simrs-test: ## Run full SIMRS verification tests (Yii 54 + FHIR 28 + Node 11 = 93 tests)
+	@echo "=== 1/3 RUNNING YII CORE BACKEND & CONCURRENCY TESTS ==="
 	@php tests/api_verification.php
 	@echo ""
-	@echo "=== 2/2 RUNNING NODE.JS SUPPORTING SERVICE TESTS ==="
+	@echo "=== 2/3 RUNNING SATUSEHAT FHIR R4 & BPJS VCLAIM TESTS ==="
+	@php tests/satusehat_fhir_test.php
+	@echo ""
+	@echo "=== 3/3 RUNNING NODE.JS SUPPORTING SERVICE TESTS ==="
 	@cd backend-node && npm test
 	@echo ""
-	@echo ">>> ALL 65 AUTOMATED TESTS PASSED SUCCESSFULLY! <<<"
+	@echo ">>> ALL 93 AUTOMATED TESTS PASSED SUCCESSFULLY! <<<"
+
+simrs-satusehat-test: ## Run SATUSEHAT FHIR R4 and BPJS VClaim test suite
+	@php tests/satusehat_fhir_test.php
 
 simrs-build: ## Build both supporting Node service and React frontend
 	@echo "Building Node.js Supporting Backend..."

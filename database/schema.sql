@@ -453,4 +453,17 @@ CREATE INDEX idx_invoices_status_date ON invoices (status, created_at);
 CREATE INDEX idx_payments_invoice_id ON payments (invoice_id);
 CREATE INDEX idx_payments_idempotency_key ON payments (idempotency_key);
 
+CREATE TABLE satusehat_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    visit_id UUID NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
+    resource_type VARCHAR(50) NOT NULL,
+    satusehat_id VARCHAR(100),
+    status VARCHAR(20) NOT NULL DEFAULT 'SYNCED' CHECK (status IN ('PENDING', 'SYNCED', 'FAILED')),
+    request_payload JSONB,
+    response_payload JSONB,
+    synced_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_satusehat_logs_visit ON satusehat_logs(visit_id);
+
 CREATE INDEX idx_audit_logs_table_record ON audit_logs (table_name, record_id);

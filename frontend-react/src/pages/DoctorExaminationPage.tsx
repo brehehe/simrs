@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { 
-  Stethoscope, 
-  Activity, 
-  FileText, 
-  Pill, 
-  FlaskConical, 
-  CheckCircle2, 
-  AlertCircle, 
-  Search, 
-  Plus, 
-  Trash2, 
-  User, 
-  Clock, 
+import {
+  Stethoscope,
+  Activity,
+  FileText,
+  Pill,
+  FlaskConical,
+  CheckCircle2,
+  AlertCircle,
+  Search,
+  Plus,
+  Trash2,
+  User,
+  Clock,
   ArrowRight,
   ShieldAlert
 } from 'lucide-react';
@@ -21,13 +21,15 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { StatusBadge } from '../components/ui/StatusBadge';
+import { ResumeMedisModal } from '../components/ResumeMedisModal';
+import { SatuSehatModal } from '../components/SatuSehatModal';
 import { visitService, Visit } from '../services/visitService';
-import { 
-  clinicalService, 
-  Diagnosis, 
-  Procedure, 
-  Medicine, 
-  LabTest 
+import {
+  clinicalService,
+  Diagnosis,
+  Procedure,
+  Medicine,
+  LabTest
 } from '../services/clinicalService';
 
 export const DoctorExaminationPage: React.FC = () => {
@@ -39,6 +41,10 @@ export const DoctorExaminationPage: React.FC = () => {
   const [activeVisits, setActiveVisits] = useState<Visit[]>([]);
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [isLoadingVisits, setIsLoadingVisits] = useState(true);
+
+  // Modal states for Resume Medis & SATUSEHAT
+  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+  const [isSatuSehatModalOpen, setIsSatuSehatModalOpen] = useState(false);
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'soap' | 'diagnosis' | 'prescription' | 'lab'>('soap');
@@ -302,13 +308,35 @@ export const DoctorExaminationPage: React.FC = () => {
 
           {/* Quick Allergy & Alert Pill */}
           <div className="flex items-center gap-3">
-            <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 flex items-center gap-2 text-xs text-teal-100">
+            {/* <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 flex items-center gap-2 text-xs text-teal-100">
               <ShieldAlert className="w-4 h-4 text-amber-300" />
               <div>
                 <span className="block font-semibold text-white">Alergi Obat:</span>
                 <span className="text-teal-200/90">Tidak ada riwayat alergi</span>
               </div>
-            </div>
+            </div> */}
+
+            {/* Quick Actions for Selected Patient */}
+            {selectedVisit && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsResumeModalOpen(true)}
+                  className="px-2.5 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  <FileText className="w-3.5 h-3.5 text-teal-300" />
+                  Resume Medis
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSatuSehatModalOpen(true)}
+                  className="px-2.5 py-2 rounded-xl text-xs font-semibold bg-teal-600/70 hover:bg-teal-600 text-teal-100 border border-teal-400/40 transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-300" />
+                  SATUSEHAT FHIR
+                </button>
+              </div>
+            )}
 
             {/* Change patient selector */}
             <select
@@ -345,11 +373,10 @@ export const DoctorExaminationPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 py-3.5 px-4 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
-                isActive
+              className={`flex items-center gap-2 py-3.5 px-4 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${isActive
                   ? 'border-primary text-primary bg-teal-50/40'
                   : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>
@@ -632,9 +659,8 @@ export const DoctorExaminationPage: React.FC = () => {
                       <div className="min-w-0">
                         <p className="font-semibold text-xs text-slate-900 truncate">{med.name}</p>
                         <p className="text-[11px] text-slate-500">{med.generic_name} • {med.unit}</p>
-                        <span className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded mt-1 ${
-                          med.current_stock > 10 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded mt-1 ${med.current_stock > 10 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
                           Stok: {med.current_stock}
                         </span>
                       </div>
@@ -735,18 +761,17 @@ export const DoctorExaminationPage: React.FC = () => {
                   <div
                     key={t.id}
                     onClick={() => handleToggleLabTest(t.id)}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                      isSelected
+                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${isSelected
                         ? 'bg-teal-50/80 border-teal-500 ring-2 ring-teal-500/20 shadow-sm'
                         : 'bg-white border-slate-200 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-mono text-xs font-bold text-slate-800">{t.code}</span>
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => {}}
+                        onChange={() => { }}
                         className="rounded text-primary focus:ring-teal-500"
                       />
                     </div>
@@ -796,6 +821,18 @@ export const DoctorExaminationPage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Modals for Resume Medis & SATUSEHAT */}
+      <ResumeMedisModal
+        visitId={selectedVisit?.id || null}
+        isOpen={isResumeModalOpen}
+        onClose={() => setIsResumeModalOpen(false)}
+      />
+      <SatuSehatModal
+        visitId={selectedVisit?.id || null}
+        isOpen={isSatuSehatModalOpen}
+        onClose={() => setIsSatuSehatModalOpen(false)}
+      />
     </div>
   );
 };

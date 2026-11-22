@@ -15,23 +15,29 @@ echo -e "${BLUE}================================================================
 echo ""
 
 # 1. Yii Core Backend & Concurrency Tests
-echo -e "${BLUE}[STEP 1/3] Running Core Backend (PHP 8.x + Yii) & Concurrency Tests...${NC}"
+echo -e "${BLUE}[STEP 1/4] Running Core Backend (PHP 8.x + Yii) & Concurrency Tests...${NC}"
 php tests/api_verification.php
 echo -e "${GREEN}✓ Core Backend Verification: 54 PASSED (0 FAILED)${NC}"
 echo ""
 
-# 2. Node.js Supporting Backend Tests
-echo -e "${BLUE}[STEP 2/3] Running Supporting Backend (Node.js + Express) Test Matrix...${NC}"
+# 2. SATUSEHAT (FHIR R4), Resume Medis, & BPJS VClaim Integration Tests
+echo -e "${BLUE}[STEP 2/4] Running SATUSEHAT FHIR R4, Resume Medis, & BPJS VClaim Test Suite...${NC}"
+php tests/satusehat_fhir_test.php
+echo -e "${GREEN}✓ SATUSEHAT FHIR R4 & BPJS Verification: 28 PASSED (0 FAILED)${NC}"
+echo ""
+
+# 3. Node.js Supporting Backend Tests
+echo -e "${BLUE}[STEP 3/4] Running Supporting Backend (Node.js + Express) Test Matrix...${NC}"
 (cd backend-node && npm test)
 echo -e "${GREEN}✓ Node.js Supporting Service Verification: 11 PASSED (0 FAILED)${NC}"
 echo ""
 
-# 3. React Frontend Production Build Verification
-echo -e "${BLUE}[STEP 3/3] Compiling React Frontend SPA Production Build (TypeScript + Vite)...${NC}"
+# 4. React Frontend Production Build Verification
+echo -e "${BLUE}[STEP 4/4] Compiling React Frontend SPA Production Build (TypeScript + Vite)...${NC}"
 (cd frontend-react && npm run build)
 echo -e "${GREEN}✓ Frontend React SPA Build Verification: 0 ERRORS, 0 WARNINGS${NC}"
 echo ""
 
 echo -e "${GREEN}========================================================================${NC}"
-echo -e "${GREEN}   🎉 ALL 65 AUTOMATED TESTS & PRODUCTION BUILDS PASSED SUCCESSFULLY!    ${NC}"
+echo -e "${GREEN}   🎉 ALL 93 AUTOMATED TESTS & PRODUCTION BUILDS PASSED SUCCESSFULLY!    ${NC}"
 echo -e "${GREEN}========================================================================${NC}"

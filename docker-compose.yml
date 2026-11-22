@@ -36,7 +36,7 @@ services:
       DB_USER: simrs_core
       DB_PASSWORD: SimrsCoreSecret2026!
     ports:
-      - "8000:8080"
+      - "8000:80"
     depends_on:
       postgres:
         condition: service_healthy

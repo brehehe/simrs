@@ -9,6 +9,8 @@ use App\Controllers\ClinicalController;
 use App\Controllers\PharmacyController;
 use App\Controllers\BillingController;
 use App\Controllers\InternalApiController;
+use App\Controllers\SatuSehatController;
+use App\Controllers\BpjsController;
 use App\Controllers\CorsController;
 use App\Web;
 use Yiisoft\Router\Group;
@@ -142,5 +144,27 @@ return [
             Route::post('/internal-api/v1/lab-results')
                 ->action([InternalApiController::class, 'receiveLabResults'])
                 ->name('api.internal.lab_results'),
+
+            // 8. SATUSEHAT (FHIR R4) & Resume Medis Endpoints (Kemenkes RI Permenkes 24/2022)
+            Route::get('/api/v1/visits/{id}/fhir-bundle')
+                ->action([SatuSehatController::class, 'getFhirBundle'])
+                ->name('api.satusehat.fhir_bundle'),
+            Route::post('/api/v1/visits/{id}/satusehat-sync')
+                ->action([SatuSehatController::class, 'sync'])
+                ->name('api.satusehat.sync'),
+            Route::get('/api/v1/visits/{id}/satusehat-logs')
+                ->action([SatuSehatController::class, 'getLogs'])
+                ->name('api.satusehat.logs'),
+            Route::get('/api/v1/visits/{id}/resume-medis')
+                ->action([SatuSehatController::class, 'getResumeMedis'])
+                ->name('api.visits.resume_medis'),
+
+            // 9. BPJS VClaim 2.0 Web Service Endpoints
+            Route::get('/api/v1/bpjs/peserta/{identifier}')
+                ->action([BpjsController::class, 'checkPeserta'])
+                ->name('api.bpjs.peserta'),
+            Route::post('/api/v1/bpjs/sep')
+                ->action([BpjsController::class, 'generateSep'])
+                ->name('api.bpjs.sep'),
         ),
 ];

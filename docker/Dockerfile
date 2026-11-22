@@ -17,7 +17,9 @@ RUN install-php-extensions \
     xml \
     xmlwriter \
     simplexml \
-    pdo
+    pdo \
+    pdo_pgsql \
+    pgsql
 
 ENV LC_ALL=C.UTF-8
 
