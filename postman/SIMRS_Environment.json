@@ -1,0 +1,37 @@
+{
+  "id": "simrs-env-local",
+  "name": "SIMRS Local Environment",
+  "values": [
+    {
+      "key": "base_url_yii",
+      "value": "http://localhost:8000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "base_url_node",
+      "value": "http://localhost:3001",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "visit_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "invoice_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

@@ -1,0 +1,230 @@
+{
+  "info": {
+    "name": "SIMRS Rawat Jalan Terintegrasi - PT Inova Medika Solusindo",
+    "description": "Koleksi API Lengkap SIMRS: Auth, Master Data, Kunjungan Antrean, EMR SOAP, Tindakan, Farmasi Dispensing, Billing Idempoten, dan Node.js Gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (dr.budi - DOCTOR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"dr.budi\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": { "raw": "{{base_url_yii}}/api/v1/auth/login", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Authenticated User Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url_yii}}/api/v1/auth/me", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Master Data",
+      "item": [
+        {
+          "name": "Get Polyclinics",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_yii}}/api/v1/polyclinics", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "polyclinics"] }
+          }
+        },
+        {
+          "name": "Get Patients List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_yii}}/api/v1/patients?page=1&limit=10", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "patients"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "10"}] }
+          }
+        },
+        {
+          "name": "Register New Patient",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"3273019901850099\",\n  \"full_name\": \"Pasien Baru Rawat Jalan\",\n  \"birth_date\": \"1985-01-19\",\n  \"gender\": \"MALE\",\n  \"address\": \"Jl. Merdeka No. 45\",\n  \"phone\": \"081234567899\"\n}"
+            },
+            "url": { "raw": "{{base_url_yii}}/api/v1/patients", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "patients"] }
+          }
+        },
+        {
+          "name": "Get Medicines & Current Stock",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_yii}}/api/v1/medicines", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "medicines"] }
+          }
+        },
+        {
+          "name": "Get Medical Procedures & Tarifs",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_yii}}/api/v1/medical-procedures", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "medical-procedures"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Visits & Queues",
+      "item": [
+        {
+          "name": "Register Visit (Atomic Queue Assignment)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"d0000000-0000-0000-0000-000000000001\",\n  \"polyclinic_id\": \"a0000000-0000-0000-0000-000000000001\",\n  \"doctor_id\": \"b0000000-0000-0000-0000-000000000001\",\n  \"visit_date\": \"2026-11-22\"\n}"
+            },
+            "url": { "raw": "{{base_url_yii}}/api/v1/visits", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits"] }
+          }
+        },
+        {
+          "name": "Get Today Queues",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_yii}}/api/v1/queues/today", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "queues", "today"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Clinical & EMR",
+      "item": [
+        {
+          "name": "Save Medical Record (SOAP + ICD-10)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visit_id\": \"{{visit_id}}\",\n  \"chief_complaint\": \"Pusing dan tengkuk kaku\",\n  \"anamnesis\": \"Pasien merasa pusing berputar sejak pagi\",\n  \"systolic_bp\": 145,\n  \"diastolic_bp\": 90,\n  \"heart_rate\": 82,\n  \"temperature\": 36.6,\n  \"physical_examination\": \"Cor/Pulmo normal, akral hangat\",\n  \"doctor_notes\": \"Istirahat cukup dan batasi asupan garam\",\n  \"diagnoses\": [\n    { \"diagnosis_id\": \"e0000000-0000-0000-0000-000000000001\", \"type\": \"PRIMARY\", \"notes\": \"Hipertensi Primer\" }\n  ]\n}"
+            },
+            "url": { "raw": "{{base_url_yii}}/api/v1/medical-records", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "medical-records"] }
+          }
+        },
+        {
+          "name": "Add Procedure (Tarif Snapshot)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"procedure_id\": \"f0000000-0000-0000-0000-000000000002\",\n  \"quantity\": 1\n}"
+            },
+            "url": { "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/procedures", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "visits", "{{visit_id}}", "procedures"] }
+          }
+        },
+        {
+          "name": "Create Prescription",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visit_id\": \"{{visit_id}}\",\n  \"notes\": \"Minum malam hari\",\n  \"items\": [\n    {\n      \"medicine_id\": \"10000000-0000-0000-0000-000000000005\",\n      \"dosage\": \"10 mg\",\n      \"frequency\": \"1x1 Sehari\",\n      \"quantity\": 30\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{base_url_yii}}/api/v1/prescriptions", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "prescriptions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Pharmacy",
+      "item": [
+        {
+          "name": "Dispense Prescription (Stock Lock)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Obat telah diserahkan\"\n}"
+            },
+            "url": { "raw": "{{base_url_yii}}/api/v1/prescriptions/{{prescription_id}}/dispense", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "prescriptions", "{{prescription_id}}", "dispense"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Billing & Kasir",
+      "item": [
+        {
+          "name": "Get Consolidated Invoice",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_yii}}/api/v1/invoices/visit/{{visit_id}}", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "invoices", "visit", "{{visit_id}}"] }
+          }
+        },
+        {
+          "name": "Process Payment (Idempotent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Idempotency-Key", "value": "idemp-key-unique-uuid-12345" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 150000,\n  \"payment_method\": \"CASH\",\n  \"reference_no\": \"CASH-001\"\n}"
+            },
+            "url": { "raw": "{{base_url_yii}}/api/v1/invoices/{{invoice_id}}/payments", "host": ["{{base_url_yii}}"], "path": ["api", "v1", "invoices", "{{invoice_id}}", "payments"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Node.js Gateway & Dashboard",
+      "item": [
+        {
+          "name": "Node Service Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_node}}/api/v1/health", "host": ["{{base_url_node}}"], "path": ["api", "v1", "health"] }
+          }
+        },
+        {
+          "name": "Dashboard KPI Summary (Read-Only)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_node}}/api/v1/dashboard/summary", "host": ["{{base_url_node}}"], "path": ["api", "v1", "dashboard", "summary"] }
+          }
+        },
+        {
+          "name": "Dashboard Visits by Polyclinic",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_node}}/api/v1/dashboard/visits-by-poly", "host": ["{{base_url_node}}"], "path": ["api", "v1", "dashboard", "visits-by-poly"] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database 16/17
+  postgres:
+    image: postgres:17-alpine
+    container_name: simrs-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: simrs_db
+      POSTGRES_USER: simrs_core
+      POSTGRES_PASSWORD: SimrsCoreSecret2026!
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seeds.sql:/docker-entrypoint-initdb.d/02-seeds.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U simrs_core -d simrs_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Core Backend: Yii Framework (PHP 8.x)
+  core-backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: simrs-yii-backend
+    restart: always
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: simrs_db
+      DB_USER: simrs_core
+      DB_PASSWORD: SimrsCoreSecret2026!
+    ports:
+      - "8000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Supporting Backend: Node.js Microservice
+  supporting-backend:
+    build:
+      context: ./backend-node
+    container_name: simrs-node-supporting
+    restart: always
+    environment:
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: simrs_db
+      DB_RO_USER: simrs_dashboard_ro
+      DB_RO_PASSWORD: SimrsDashboardSecret2026!
+      YII_INTERNAL_LAB_URL: http://core-backend:8080/internal-api/v1/lab-results
+      INTERNAL_SERVICE_SECRET: simrs-service-secret-inova-2026
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Frontend: React.js + Vite SPA
+  frontend:
+    build:
+      context: ./frontend-react
+    container_name: simrs-react-frontend
+    restart: always
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+      VITE_NODE_API_URL: http://localhost:3001/api/v1
+    ports:
+      - "5173:5173"
+    depends_on:
+      - core-backend
+      - supporting-backend
+
+volumes:
+  pgdata:
