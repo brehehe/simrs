@@ -28,7 +28,6 @@ return [
                     [
                         ErrorCatcher::class,
                         SessionMiddleware::class,
-                        CsrfTokenMiddleware::class,
                         RequestCatcherMiddleware::class,
                         Router::class,
                     ],
