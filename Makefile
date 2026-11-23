@@ -144,6 +144,12 @@ endif
 # SIMRS Local Development Targets
 #
 
+start: ## Run all 3 SIMRS services at once (PHP Backend + Node Service + React Frontend)
+	@bash start_all.sh
+
+run: ## Alias for start
+	@bash start_all.sh
+
 simrs-test: ## Run full SIMRS verification tests (54 Core + 37 FHIR & Hub + 14 Reports + 13 Audit + 14 Adjustments + 11 Chaos + 11 Node = 154 tests)
 	@bash tests/run_all_tests.sh
 
