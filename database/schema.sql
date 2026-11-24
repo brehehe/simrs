@@ -390,6 +390,8 @@ CREATE TABLE payments (
     invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE RESTRICT,
     idempotency_key VARCHAR(64) UNIQUE NOT NULL, -- Idempotency protection against double submit
     amount NUMERIC(14,2) NOT NULL CHECK (amount > 0),
+    cash_received NUMERIC(14,2), -- Nominal uang tunai yang diserahkan pasien
+    change_amount NUMERIC(14,2) DEFAULT 0, -- Nominal uang kembalian
     payment_method VARCHAR(20) NOT NULL CHECK (payment_method IN ('CASH', 'QRIS', 'DEBIT_CARD', 'BANK_TRANSFER')),
     payment_status VARCHAR(20) NOT NULL DEFAULT 'SUCCESS' CHECK (payment_status IN ('SUCCESS', 'FAILED')),
     paid_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

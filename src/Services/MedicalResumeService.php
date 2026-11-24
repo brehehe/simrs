@@ -37,7 +37,7 @@ class MedicalResumeService
         $ageYears = $birthDate->diff($now)->y;
 
         // Ambil Rekam Medis (EMR)
-        $emr = Database::fetchOne("SELECT * FROM medical_records WHERE visit_id = :id", [':id' => $visitId]);
+        $emr = Database::fetchOne("SELECT * FROM medical_records WHERE visit_id = :id", [':id' => $visitId]) ?: [];
 
         // Ambil Diagnosa ICD-10
         $diagnoses = Database::fetchAll("
@@ -148,19 +148,19 @@ class MedicalResumeService
                 'status' => $visit['status'],
             ],
             'clinical_findings' => [
-                'chief_complaint' => $emr['chief_complaint'] ?? '-',
-                'anamnesis' => $emr['anamnesis'] ?? '-',
-                'physical_examination' => $emr['physical_examination'] ?? '-',
+                'chief_complaint' => !empty($emr['chief_complaint']) ? $emr['chief_complaint'] : '-',
+                'anamnesis' => !empty($emr['anamnesis']) ? $emr['anamnesis'] : '-',
+                'physical_examination' => !empty($emr['physical_examination']) ? $emr['physical_examination'] : '-',
                 'vital_signs' => [
-                    'blood_pressure' => ($emr['systolic_bp'] && $emr['diastolic_bp']) ? "{$emr['systolic_bp']}/{$emr['diastolic_bp']} mmHg" : '-',
-                    'heart_rate' => $emr['heart_rate'] ? "{$emr['heart_rate']} x/menit" : '-',
-                    'respiratory_rate' => $emr['respiratory_rate'] ? "{$emr['respiratory_rate']} x/menit" : '-',
-                    'temperature' => $emr['temperature'] ? "{$emr['temperature']} °C" : '-',
-                    'weight' => $emr['weight'] ? "{$emr['weight']} kg" : '-',
-                    'height' => $emr['height'] ? "{$emr['height']} cm" : '-',
+                    'blood_pressure' => (!empty($emr['systolic_bp']) && !empty($emr['diastolic_bp'])) ? "{$emr['systolic_bp']}/{$emr['diastolic_bp']} mmHg" : '-',
+                    'heart_rate' => !empty($emr['heart_rate']) ? "{$emr['heart_rate']} x/menit" : '-',
+                    'respiratory_rate' => !empty($emr['respiratory_rate']) ? "{$emr['respiratory_rate']} x/menit" : '-',
+                    'temperature' => !empty($emr['temperature']) ? "{$emr['temperature']} °C" : '-',
+                    'weight' => !empty($emr['weight']) ? "{$emr['weight']} kg" : '-',
+                    'height' => !empty($emr['height']) ? "{$emr['height']} cm" : '-',
                     'bmi' => $bmi ? "{$bmi} ({$bmiCategory})" : '-',
                 ],
-                'doctor_notes' => $emr['doctor_notes'] ?? '-',
+                'doctor_notes' => !empty($emr['doctor_notes']) ? $emr['doctor_notes'] : '-',
             ],
             'diagnoses' => array_map(fn($d) => [
                 'code' => $d['icd10_code'],

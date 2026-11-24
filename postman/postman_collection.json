@@ -1,0 +1,1343 @@
+{
+  "info": {
+    "name": "SIMRS Rawat Jalan Terintegrasi - PT Inova Medika Solusindo",
+    "description": "Koleksi API Lengkap SIMRS: Auth, Master Data CRUD, Kunjungan & Antrean, EMR SOAP, Farmasi, Laboratorium, Billing & Kasir, SATUSEHAT FHIR R4, Laporan Kemenkes RL 5.3, dan Audit Trail Permenkes 24/2022.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login Dokter (dr.budi)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"dr.budi\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/auth/login",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Kasir (kasir.maya)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"kasir.maya\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/auth/login",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Admin (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/auth/login",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/auth/me",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Master Data CRUD",
+      "item": [
+        {
+          "name": "Poliklinik - List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/polyclinics",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "polyclinics"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Poliklinik - Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"POLI-SAR\",\n  \"name\": \"Poliklinik Saraf\",\n  \"queue_prefix\": \"S\",\n  \"location\": \"Gedung B Lt. 2\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/polyclinics",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "polyclinics"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dokter & Staf Medis - List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medical-staff",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medical-staff"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dokter & Staf Medis - Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"dr. Hendra Wijaya, Sp.S\",\n  \"staff_type\": \"DOCTOR\",\n  \"specialization\": \"Spesialis Saraf\",\n  \"sip_number\": \"SIP/2026/05/998\",\n  \"phone\": \"081234567890\",\n  \"email\": \"dr.hendra@simrs.local\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medical-staff",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medical-staff"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Jadwal Dokter - List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/doctor-schedules",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor-schedules"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tindakan & Tarif - List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medical-procedures",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medical-procedures"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obat & Alkes - List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medicines",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medicines"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Manajemen User - List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/users",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pasien - List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/patients?page=1&limit=20",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pasien - Registrasi Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"3201234567890001\",\n  \"full_name\": \"Ahmad Fauzi\",\n  \"gender\": \"M\",\n  \"birth_date\": \"1990-05-15\",\n  \"address\": \"Jl. Sukajadi No. 12 Bandung\",\n  \"phone\": \"081298765432\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/patients",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Kunjungan & Antrean Rawat Jalan",
+      "item": [
+        {
+          "name": "Daftarkan Kunjungan (Antrean Atomik)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"d0000000-0000-0000-0000-000000000001\",\n  \"polyclinic_id\": \"a0000000-0000-0000-0000-000000000001\",\n  \"doctor_id\": \"b0000000-0000-0000-0000-000000000001\",\n  \"visit_date\": \"2026-11-24\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Antrean Hari Ini (Today Queues)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/queues/today",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "queues",
+                "today"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Daftar Kunjungan (Filter)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits?page=1&limit=20",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Status Kunjungan (Panggil Dokter)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_EXAMINATION\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/status",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Rekam Medis (EMR) & Klinis",
+      "item": [
+        {
+          "name": "Input EMR SOAP & Diagnosis ICD-10",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visit_id\": \"{{visit_id}}\",\n  \"chief_complaint\": \"Pusing berdenyut dan tengkuk kaku sejak 3 hari\",\n  \"anamnesis\": \"Pasien memiliki riwayat hipertensi namun tidak rutin minum obat\",\n  \"physical_examination\": \"Keadaan umum tampak sakit sedang, compos mentis\",\n  \"vital_signs\": {\n    \"systolic\": 140,\n    \"diastolic\": 90,\n    \"heart_rate\": 82,\n    \"respiratory_rate\": 20,\n    \"temperature\": 36.8,\n    \"oxygen_saturation\": 98,\n    \"weight_kg\": 68,\n    \"height_cm\": 170\n  },\n  \"diagnoses\": [\n    {\n      \"icd10_code\": \"I10\",\n      \"diagnosis_type\": \"PRIMARY\",\n      \"notes\": \"Hipertensi Primer Esensial\"\n    },\n    {\n      \"icd10_code\": \"E11.9\",\n      \"diagnosis_type\": \"SECONDARY\",\n      \"notes\": \"Diabetes Melitus Tipe 2\"\n    }\n  ],\n  \"plan\": \"Edukasi diet rendah garam dan kontrol rutin\",\n  \"doctor_notes\": \"Monitor tekanan darah harian\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medical-records",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medical-records"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Input Tindakan Medis (Snapshot Tarif)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"procedure_id\": \"c0000000-0000-0000-0000-000000000001\",\n  \"quantity\": 1,\n  \"notes\": \"Pemeriksaan EKG Rekam Jantung Rutin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/procedures",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "procedures"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buat Resep Obat Elektronik (E-Prescription)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visit_id\": \"{{visit_id}}\",\n  \"items\": [\n    {\n      \"medicine_id\": \"e0000000-0000-0000-0000-000000000001\",\n      \"quantity\": 30,\n      \"dosage\": \"10 mg\",\n      \"frequency\": \"1x1 Sehari\",\n      \"instructions\": \"Diminum pagi hari setelah makan\"\n    }\n  ],\n  \"notes\": \"Resep obat antihipertensi 1 bulan\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/prescriptions",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prescriptions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buat Permintaan Lab (Lab Order)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visit_id\": \"{{visit_id}}\",\n  \"test_ids\": [\n    \"f0000000-0000-0000-0000-000000000001\",\n    \"f0000000-0000-0000-0000-000000000002\"\n  ],\n  \"notes\": \"Cek Darah Lengkap dan Glukosa Puasa\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/lab-orders",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lab-orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Resume Medis Rawat Jalan (KARS/STARKES)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/resume-medis",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "resume-medis"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Riwayat Longitudinal Pasien",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/patients/{{patient_id}}/history",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients",
+                "{{patient_id}}",
+                "history"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Farmasi & Dispensing Obat",
+      "item": [
+        {
+          "name": "List Antrean Resep Depo Farmasi",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/prescriptions?status=ORDERED",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prescriptions"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ORDERED"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dispensing & Pengurangan Stok Atomik",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Obat diserahkan dan dijelaskan cara minumnya kepada pasien\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/prescriptions/{{prescription_id}}/dispense",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prescriptions",
+                "{{prescription_id}}",
+                "dispense"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Riwayat Mutasi Stok Obat",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/medicines/{{medicine_id}}/stock-movements",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "medicines",
+                "{{medicine_id}}",
+                "stock-movements"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Billing & Kasir Pembayaran",
+      "item": [
+        {
+          "name": "Konsolidasi Tagihan Invoice Pasien",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/invoices/visit/{{visit_id}}",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "visit",
+                "{{visit_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Proses Pembayaran Tunai (Dengan Kembalian)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "pay-test-key-001"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 55000,\n  \"cash_received\": 155000,\n  \"change_amount\": 100000,\n  \"payment_method\": \"CASH\",\n  \"idempotency_key\": \"pay-test-key-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/invoices/{{invoice_id}}/payments",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoice_id}}",
+                "payments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Proses Pembayaran QRIS / Non-Tunai",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "pay-test-qris-002"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 55000,\n  \"payment_method\": \"QRIS\",\n  \"reference_no\": \"QRIS-TRX-998877\",\n  \"idempotency_key\": \"pay-test-qris-002\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/invoices/{{invoice_id}}/payments",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoice_id}}",
+                "payments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Kuitansi Pembayaran Resmi",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/payments/{{payment_id}}/receipt",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "{{payment_id}}",
+                "receipt"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Riwayat Pembayaran Kasir",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/payments?limit=50",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tambah Penyesuaian / Diskon Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adjustment_type\": \"DEDUCTION\",\n  \"amount\": 25000,\n  \"reason\": \"Diskon persetujuan Direktur Pelayanan untuk pasien reguler\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/invoices/{{invoice_id}}/adjustments",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoice_id}}",
+                "adjustments"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Node.js Lab Gateway & Aggregator",
+      "item": [
+        {
+          "name": "Ingest Hasil Alat Lab (X-Internal-Secret)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Internal-Secret",
+                "value": "SimrsLabSecret2026!"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lab_order_id\": \"{{lab_order_id}}\",\n  \"idempotency_key\": \"lab-ingest-key-001\",\n  \"results\": [\n    {\n      \"test_code\": \"CBC\",\n      \"test_name\": \"Complete Blood Count\",\n      \"result_value\": \"14.2\",\n      \"unit\": \"g/dL\",\n      \"normal_range\": \"13.0 - 17.0\",\n      \"abnormal_flag\": \"NORMAL\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url_node}}/api/v1/lab/ingest",
+              "host": [
+                "{{base_url_node}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lab",
+                "ingest"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard KPI Summary (Read-Only Node.js)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url_node}}/api/v1/dashboard/summary",
+              "host": [
+                "{{base_url_node}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "summary"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard Kunjungan per Poli",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url_node}}/api/v1/dashboard/visits-by-poly",
+              "host": [
+                "{{base_url_node}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "visits-by-poly"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. SATUSEHAT (FHIR R4) & BPJS VClaim",
+      "item": [
+        {
+          "name": "Get SATUSEHAT FHIR R4 Bundle Kunjungan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/fhir-bundle",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "fhir-bundle"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sinkronisasi Kunjungan ke SATUSEHAT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/visits/{{visit_id}}/satusehat-sync",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "visits",
+                "{{visit_id}}",
+                "satusehat-sync"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Trigger SATUSEHAT Batch Sync",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/satusehat/batch-sync",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "satusehat",
+                "batch-sync"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cek Kepesertaan BPJS via NIK / No. Kartu",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/bpjs/peserta/3201234567890001",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bpjs",
+                "peserta",
+                "3201234567890001"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Laporan & Rekonsiliasi (Kemenkes RL 5.3)",
+      "item": [
+        {
+          "name": "Laporan 10 Besar Penyakit (RL 5.3)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/reports/top-diagnoses",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "top-diagnoses"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Laporan Rekonsiliasi Finansial Kasir",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/reports/financial-reconciliation",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "financial-reconciliation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ringkasan Kunjungan Rawat Jalan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/reports/visit-summary",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "visit-summary"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Laporan Pemakaian Obat Apotek",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/reports/medicine-usage",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reports",
+                "medicine-usage"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Audit Trail Permenkes 24/2022",
+      "item": [
+        {
+          "name": "Log Audit Sistem Keseluruhan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/audit/logs?limit=50",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "audit",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Audit Trail Akses Data Pasien",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/audit/patients/{{patient_id}}",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "audit",
+                "patients",
+                "{{patient_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ringkasan Kepatuhan RME (Compliance Summary)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_yii}}/api/v1/audit/compliance-summary",
+              "host": [
+                "{{base_url_yii}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "audit",
+                "compliance-summary"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

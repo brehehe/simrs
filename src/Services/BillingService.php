@@ -227,13 +227,15 @@ class BillingService
         }
 
         $idempotencyKey = trim((string) $data['idempotency_key']);
-        $amount = (float) ($data['amount'] ?? 0);
+        $rawAmount = (float) ($data['amount'] ?? 0);
+        $cashReceivedInput = isset($data['cash_received']) ? (float)$data['cash_received'] : null;
+        $changeAmountInput = isset($data['change_amount']) ? (float)$data['change_amount'] : null;
         $method = strtoupper(trim((string) ($data['payment_method'] ?? 'CASH')));
         if ($method === 'DEBIT') $method = 'DEBIT_CARD';
         if ($method === 'TRANSFER') $method = 'BANK_TRANSFER';
         $refNo = $data['reference_no'] ?? null;
 
-        if ($amount <= 0) {
+        if ($rawAmount <= 0 && ($cashReceivedInput === null || $cashReceivedInput <= 0)) {
             throw new Exception("Nominal pembayaran harus lebih besar dari 0.", 422);
         }
 
@@ -247,14 +249,14 @@ class BillingService
 
         if ($existingPayment) {
             // Idempotent Replay: Return hasil pembayaran sebelumnya tanpa menduplikasi data
-            if (abs((float)$existingPayment['amount'] - $amount) > 0.01) {
-                throw new Exception("Idempotency key telah digunakan dengan nominal pembayaran yang berbeda.", 422);
-            }
             return [
                 'payment_id' => $existingPayment['id'],
                 'payment_number' => $existingPayment['payment_number'],
                 'invoice_number' => $existingPayment['invoice_number'],
+                'amount' => (float) $existingPayment['amount'],
                 'amount_paid' => (float) $existingPayment['amount'],
+                'cash_received' => (float) ($existingPayment['cash_received'] ?? $existingPayment['amount']),
+                'change_amount' => (float) ($existingPayment['change_amount'] ?? 0),
                 'outstanding_balance' => (float) $existingPayment['outstanding_balance'],
                 'invoice_status' => $existingPayment['invoice_status'],
                 'paid_at' => $existingPayment['paid_at'],
@@ -280,8 +282,25 @@ class BillingService
                 throw new Exception("Tagihan ini sudah lunas.", 400);
             }
 
-            if ($amount > $outstanding) {
-                throw new Exception("Nominal pembayaran (Rp {$amount}) melebihi sisa tagihan (Rp {$outstanding}).", 422);
+            // Hitung nominal bayar vs kembalian jika tunai (CASH)
+            if ($method === 'CASH') {
+                $tender = $cashReceivedInput ?? $rawAmount;
+                if ($rawAmount > $outstanding) {
+                    $settleAmount = $outstanding;
+                    $cashReceived = max($rawAmount, $tender);
+                    $changeAmount = $cashReceived - $settleAmount;
+                } else {
+                    $settleAmount = $rawAmount > 0 ? $rawAmount : min($tender, $outstanding);
+                    $cashReceived = max($tender, $settleAmount);
+                    $changeAmount = $changeAmountInput ?? max(0.0, $cashReceived - $settleAmount);
+                }
+            } else {
+                if ($rawAmount > $outstanding) {
+                    throw new Exception("Nominal pembayaran non-tunai (Rp {$rawAmount}) melebihi sisa tagihan (Rp {$outstanding}).", 422);
+                }
+                $settleAmount = $rawAmount;
+                $cashReceived = $rawAmount;
+                $changeAmount = 0.0;
             }
 
             // 3. Simpan Pembayaran
@@ -296,26 +315,30 @@ class BillingService
             $insertPaymentSql = "
                 INSERT INTO payments (
                     payment_number, invoice_id, idempotency_key, amount,
-                    payment_method, payment_status, cashier_id, reference_no
+                    payment_method, payment_status, cashier_id, reference_no,
+                    cash_received, change_amount
                 ) VALUES (
                     :pay_num, :inv_id, :idemp_key, :amount,
-                    :method, 'SUCCESS', :cashier, :ref_no
+                    :method, 'SUCCESS', :cashier, :ref_no,
+                    :cash_received, :change_amount
                 )
-                RETURNING id, payment_number, amount, paid_at;
+                RETURNING id, payment_number, amount, cash_received, change_amount, paid_at;
             ";
 
             $payment = Database::fetchOne($insertPaymentSql, [
                 ':pay_num' => $payNumber,
                 ':inv_id' => $invoiceId,
                 ':idemp_key' => $idempotencyKey,
-                ':amount' => $amount,
+                ':amount' => $settleAmount,
                 ':method' => $method,
                 ':cashier' => $cashierUserId,
                 ':ref_no' => $refNo,
+                ':cash_received' => $cashReceived,
+                ':change_amount' => $changeAmount,
             ]);
 
             // 4. Perbarui Saldo & Status Invoice
-            $newPaid = (float) $invoice['paid_amount'] + $amount;
+            $newPaid = (float) $invoice['paid_amount'] + $settleAmount;
             $newOutstanding = max(0.0, (float) $invoice['total_amount'] - $newPaid);
             $newStatus = ($newOutstanding <= 0.0) ? 'PAID' : 'PARTIALLY_PAID';
 
@@ -345,7 +368,9 @@ class BillingService
             (new AuditService())->log('payments', $payment['id'], 'INSERT', null, [
                 'invoice_id' => $invoiceId,
                 'invoice_number' => $invoice['invoice_number'],
-                'amount' => $amount,
+                'amount' => $settleAmount,
+                'cash_received' => $cashReceived,
+                'change_amount' => $changeAmount,
                 'payment_method' => $method,
                 'idempotency_key' => $idempotencyKey,
                 'invoice_status' => $newStatus,
@@ -357,7 +382,10 @@ class BillingService
                 'payment_id' => $payment['id'],
                 'payment_number' => $payment['payment_number'],
                 'invoice_number' => $invoice['invoice_number'],
+                'amount' => (float) $payment['amount'],
                 'amount_paid' => (float) $payment['amount'],
+                'cash_received' => (float) ($payment['cash_received'] ?? $cashReceived),
+                'change_amount' => (float) ($payment['change_amount'] ?? $changeAmount),
                 'outstanding_balance' => $newOutstanding,
                 'invoice_status' => $newStatus,
                 'paid_at' => $payment['paid_at'],

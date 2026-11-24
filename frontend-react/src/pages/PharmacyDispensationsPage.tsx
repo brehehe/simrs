@@ -158,9 +158,9 @@ export const PharmacyDispensationsPage: React.FC = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-teal-500/20 backdrop-blur-md rounded-2xl border border-teal-400/30 text-teal-300">
+          {/* <div className="p-3 bg-teal-500/20 backdrop-blur-md rounded-2xl border border-teal-400/30 text-teal-300">
             <Pill className="w-8 h-8" />
-          </div>
+          </div> */}
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
               Riwayat Penyerahan Obat (Dispensed)

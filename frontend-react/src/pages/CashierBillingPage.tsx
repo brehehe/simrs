@@ -54,23 +54,39 @@ export const CashierBillingPage: React.FC = () => {
   const [adjustmentReason, setAdjustmentReason] = useState<string>('');
   const [isSubmittingAdjustment, setIsSubmittingAdjustment] = useState(false);
 
-  // Load visits
+  // Load visits (Hanya memunculkan kunjungan yang belum lunas)
   const fetchVisits = async () => {
     try {
       setIsLoadingVisits(true);
-      const res = await visitService.getVisits();
-      setCashierVisits(res.items);
+      const res = await visitService.getVisits({ unpaid_only: true }, 1, 100);
+
+      // Filter out any visits that are already paid or completed
+      let available = (res.items || []).filter(
+        v => v.status !== 'COMPLETED' && v.status !== 'CANCELLED' && v.invoice_status !== 'PAID'
+      );
+
+      // If URL specifies a visit_id, ensure it can be found/inspected
+      if (visitIdFromUrl && !available.some(v => v.id === visitIdFromUrl)) {
+        try {
+          const directVisit = await visitService.getVisitById(visitIdFromUrl);
+          if (directVisit) {
+            available = [directVisit, ...available];
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      setCashierVisits(available);
 
       let current: Visit | undefined;
       if (visitIdFromUrl) {
-        current = res.items.find(v => v.id === visitIdFromUrl);
+        current = available.find(v => v.id === visitIdFromUrl);
       }
       if (!current) {
-        current = res.items.find(v => v.status === 'READY_FOR_BILLING' || v.status === 'COMPLETED');
+        current = available.find(v => v.status === 'READY_FOR_BILLING') || available[0];
       }
-      if (current) {
-        setSelectedVisit(current);
-      }
+      setSelectedVisit(current || null);
     } catch {
       toast.error('Gagal mengambil daftar kunjungan billing');
     } finally {
@@ -117,8 +133,18 @@ export const CashierBillingPage: React.FC = () => {
       setIsProcessingPayment(true);
       const idempotencyKey = `pay-${activeInvoice.id}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
+      const isCash = paymentMethod === 'CASH';
+      const settleAmount = isCash && paymentAmount > activeInvoice.outstanding_balance
+        ? activeInvoice.outstanding_balance
+        : paymentAmount;
+      const changeAmount = isCash && paymentAmount > activeInvoice.outstanding_balance
+        ? paymentAmount - activeInvoice.outstanding_balance
+        : 0;
+
       const result = await billingService.processPayment(activeInvoice.id, {
-        amount: paymentAmount,
+        amount: settleAmount,
+        cash_received: paymentAmount,
+        change_amount: changeAmount,
         payment_method: paymentMethod,
         reference_no: referenceNo || undefined,
         idempotency_key: idempotencyKey,
@@ -130,9 +156,10 @@ export const CashierBillingPage: React.FC = () => {
       setReceiptData({
         ...result,
         invoice: activeInvoice,
-        payment_amount: paymentAmount,
+        payment_amount: settleAmount,
+        cash_received: paymentAmount,
         payment_method: paymentMethod,
-        change_amount: paymentAmount > activeInvoice.outstanding_balance ? paymentAmount - activeInvoice.outstanding_balance : 0,
+        change_amount: changeAmount,
       });
       setIsReceiptModalOpen(true);
 
@@ -231,12 +258,18 @@ export const CashierBillingPage: React.FC = () => {
                   if (found) setSelectedVisit(found);
                 }}
               >
-                <option value="" disabled>Pilih Kunjungan Pasien...</option>
-                {cashierVisits.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.queue_display} - {v.patient_name} ({v.mr_number}) [{v.status}]
-                  </option>
-                ))}
+                {cashierVisits.length === 0 ? (
+                  <option value="" disabled>Tidak ada tagihan tertunda (Semua Lunas)</option>
+                ) : (
+                  <>
+                    <option value="" disabled>Pilih Kunjungan Pasien ({cashierVisits.length} Belum Lunas)...</option>
+                    {cashierVisits.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.queue_display} - {v.patient_name} ({v.mr_number}) [{v.status}]
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
             </div>
           </Card>
@@ -248,9 +281,11 @@ export const CashierBillingPage: React.FC = () => {
           >
             {isLoadingInvoice ? (
               <TableSkeleton rows={4} cols={4} />
-            ) : !activeInvoice ? (
-              <div className="p-8 text-center text-slate-400 text-xs">
-                Pilih kunjungan pasien untuk melihat rincian tagihan invoice.
+            ) : !selectedVisit || !activeInvoice ? (
+              <div className="p-12 text-center text-slate-500 text-xs space-y-2">
+                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+                <p className="font-semibold text-slate-700 text-sm">Semua Tagihan Rawat Jalan Telah Lunas</p>
+                <p className="text-slate-400">Tidak ada antrean pasien yang menunggu pembayaran saat ini.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -376,9 +411,11 @@ export const CashierBillingPage: React.FC = () => {
             title="Proses Pembayaran" 
             subtitle="Pilih metode pembayaran dan cetak kuitansi resmi"
           >
-            {!activeInvoice ? (
+            {!selectedVisit || !activeInvoice ? (
               <p className="text-xs text-slate-400 text-center py-6">
-                Silakan pilih pasien untuk memproses pembayaran.
+                {cashierVisits.length === 0
+                  ? 'Tidak ada antrean pembayaran aktif saat ini.'
+                  : 'Silakan pilih pasien untuk memproses pembayaran.'}
               </p>
             ) : activeInvoice.status === 'PAID' ? (
               <div className="p-6 bg-green-50 border border-green-200 rounded-xl text-center space-y-3">
@@ -583,13 +620,13 @@ export const CashierBillingPage: React.FC = () => {
                   <span>Rp {activeInvoice.total_amount.toLocaleString('id-ID')}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
-                  <span>PEMBAYARAN ({paymentMethod}):</span>
-                  <span>Rp {(receiptData?.payment_amount || paymentAmount).toLocaleString('id-ID')}</span>
+                  <span>PEMBAYARAN DITERIMA ({paymentMethod}):</span>
+                  <span>Rp {(receiptData?.cash_received || receiptData?.payment_amount || paymentAmount).toLocaleString('id-ID')}</span>
                 </div>
-                {change > 0 && (
-                  <div className="flex justify-between text-teal-700">
-                    <span>KEMBALIAN:</span>
-                    <span>Rp {change.toLocaleString('id-ID')}</span>
+                {((receiptData?.change_amount && receiptData.change_amount > 0) || change > 0) && (
+                  <div className="flex justify-between text-teal-700 font-bold">
+                    <span>UANG KEMBALIAN:</span>
+                    <span>Rp {(receiptData?.change_amount ?? change).toLocaleString('id-ID')}</span>
                   </div>
                 )}
               </div>

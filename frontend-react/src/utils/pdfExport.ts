@@ -163,11 +163,25 @@ export function exportReceiptToPdf(receipt: any) {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
+  const paidVal = Number(receipt.amount_paid || receipt.amount) || 0;
+  const cashRcv = Number(receipt.cash_received || receipt.amount_paid || receipt.amount) || 0;
+  const changeVal = Number(receipt.change_amount) || 0;
+
   doc.text(
-    `TOTAL DIBAYAR : Rp ${(Number(receipt.amount_paid) || 0).toLocaleString('id-ID')}`,
+    `TOTAL DIBAYAR : Rp ${paidVal.toLocaleString('id-ID')}`,
     10,
     finalY
   );
+  if (changeVal > 0 || cashRcv > paidVal) {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+    doc.text(
+      `Nominal Diterima : Rp ${cashRcv.toLocaleString('id-ID')} | Uang Kembalian : Rp ${changeVal.toLocaleString('id-ID')}`,
+      10,
+      finalY + 4
+    );
+  }
 
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');

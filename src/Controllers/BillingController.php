@@ -76,7 +76,11 @@ class BillingController
 
         try {
             $payment = Database::fetchOne("
-                SELECT p.*, inv.invoice_number, inv.total_amount, inv.outstanding_balance, inv.status AS invoice_status,
+                SELECT p.*,
+                       p.amount AS amount_paid,
+                       COALESCE(p.cash_received, p.amount) AS cash_received,
+                       COALESCE(p.change_amount, 0) AS change_amount,
+                       inv.invoice_number, inv.total_amount, inv.outstanding_balance, inv.status AS invoice_status,
                        pt.full_name AS patient_name, pt.mr_number, u.full_name AS cashier_name
                 FROM payments p
                 JOIN invoices inv ON inv.id = p.invoice_id
@@ -145,7 +149,11 @@ class BillingController
 
         try {
             $payments = Database::fetchAll("
-                SELECT p.*, inv.invoice_number, inv.total_amount, inv.status AS invoice_status,
+                SELECT p.*,
+                       p.amount AS amount_paid,
+                       COALESCE(p.cash_received, p.amount) AS cash_received,
+                       COALESCE(p.change_amount, 0) AS change_amount,
+                       inv.invoice_number, inv.total_amount, inv.status AS invoice_status,
                        pt.full_name AS patient_name, pt.mr_number,
                        u.full_name AS cashier_name
                 FROM payments p

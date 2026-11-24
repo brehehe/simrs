@@ -90,6 +90,15 @@ export const clinicalService = {
     }
   },
 
+  async getMedicalRecordByVisit(visitId: string): Promise<any> {
+    try {
+      const res = await apiClient.get<ApiResponse<any>>(`/medical-records/visit/${visitId}`);
+      return res.data.data;
+    } catch {
+      return null;
+    }
+  },
+
   async saveMedicalRecord(data: any): Promise<any> {
     const res = await apiClient.post<ApiResponse<any>>('/medical-records', data);
     return res.data.data;

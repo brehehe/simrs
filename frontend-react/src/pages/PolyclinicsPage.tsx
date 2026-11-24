@@ -149,9 +149,9 @@ export const PolyclinicsPage: React.FC = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-teal-500/20 backdrop-blur-md rounded-2xl border border-teal-400/30 text-teal-300">
+          {/* <div className="p-3 bg-teal-500/20 backdrop-blur-md rounded-2xl border border-teal-400/30 text-teal-300">
             <Building2 className="w-8 h-8" />
-          </div>
+          </div> */}
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
               Master Poliklinik & Ruang Layanan
@@ -185,7 +185,7 @@ export const PolyclinicsPage: React.FC = () => {
       </div>
 
       {/* Info Callout */}
-      <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 text-xs text-teal-900">
+      {/* <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 text-xs text-teal-900">
         <ShieldCheck className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
         <div>
           <p className="font-semibold text-teal-950">Integritas Prefix Antrean Atomik</p>
@@ -193,7 +193,7 @@ export const PolyclinicsPage: React.FC = () => {
             Prefix antrean poliklinik (misal: 'A' untuk Penyakit Dalam, 'B' untuk Anak) digunakan oleh mesin sequence counter PostgreSQL guna menjamin keunikan nomor antrean atomik per hari pelayanan.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* Search */}
       <Card className="p-4">
@@ -286,9 +286,8 @@ export const PolyclinicsPage: React.FC = () => {
               placeholder="Contoh: POLI-SARAF"
               value={formData.code}
               onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-              className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono ${
-                isEditing ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white border-slate-300'
-              }`}
+              className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono ${isEditing ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white border-slate-300'
+                }`}
             />
             {isEditing && (
               <p className="text-[10px] text-slate-400 mt-1">Kode poliklinik bersifat permanen dan tidak dapat diubah.</p>

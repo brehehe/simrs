@@ -76,6 +76,8 @@ export const billingService = {
 
   async processPayment(invoiceId: string, payload: {
     amount: number;
+    cash_received?: number;
+    change_amount?: number;
     payment_method: string;
     reference_no?: string;
     idempotency_key: string;

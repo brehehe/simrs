@@ -183,11 +183,15 @@ class RegistrationService
             $where .= " AND (p.full_name ILIKE :s OR p.mr_number ILIKE :s OR v.visit_number ILIKE :s OR v.queue_display ILIKE :s)";
             $params[':s'] = "%" . trim($filters['search']) . "%";
         }
+        if (!empty($filters['unpaid_only'])) {
+            $where .= " AND v.status != 'CANCELLED' AND v.status != 'COMPLETED' AND (inv.status IS NULL OR inv.status != 'PAID' OR inv.outstanding_balance > 0)";
+        }
 
         $countSql = "
             SELECT COUNT(*) 
             FROM visits v 
             JOIN patients p ON p.id = v.patient_id 
+            LEFT JOIN invoices inv ON inv.visit_id = v.id
             {$where}
         ";
         $totalCount = (int) (Database::fetchOne($countSql, $params)['count'] ?? 0);
@@ -196,11 +200,13 @@ class RegistrationService
             SELECT v.id, v.visit_number, v.visit_date, v.queue_number, v.queue_display, v.status, v.cancel_reason, v.created_at,
                    p.id AS patient_id, p.mr_number, p.full_name AS patient_name, p.gender, p.birth_date, p.phone,
                    poly.id AS polyclinic_id, poly.name AS polyclinic_name,
-                   ms.id AS doctor_id, ms.full_name AS doctor_name
+                   ms.id AS doctor_id, ms.full_name AS doctor_name,
+                   inv.status AS invoice_status, inv.outstanding_balance
             FROM visits v
             JOIN patients p ON p.id = v.patient_id
             JOIN polyclinics poly ON poly.id = v.polyclinic_id
             JOIN medical_staff ms ON ms.id = v.doctor_id
+            LEFT JOIN invoices inv ON inv.visit_id = v.id
             {$where}
             ORDER BY v.visit_date DESC, v.queue_number ASC
             LIMIT {$limit} OFFSET {$offset}

@@ -27,7 +27,10 @@ interface PaymentItem {
   invoice_number: string;
   patient_name: string;
   mr_number: string;
+  amount?: string | number;
   amount_paid: string | number;
+  cash_received?: string | number;
+  change_amount?: string | number;
   total_amount: string | number;
   payment_method: string;
   reference_no: string | null;
@@ -60,7 +63,8 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
     fetchPayments();
   }, []);
 
-  const formatRupiah = (val: number | string) => {
+  const formatRupiah = (val?: number | string | null) => {
+    if (val === undefined || val === null || val === '') return 'Rp 0';
     const num = typeof val === 'string' ? parseFloat(val) : val;
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -99,7 +103,9 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
       invoice_number: p.invoice_number,
       patient_name: p.patient_name,
       mr_number: p.mr_number,
-      amount_paid: Number(p.amount_paid) || 0,
+      cash_received: Number(p.cash_received || p.amount_paid || p.amount) || 0,
+      change_amount: Number(p.change_amount) || 0,
+      amount_paid: Number(p.amount_paid || p.amount) || 0,
       payment_method: p.payment_method,
       paid_at: p.paid_at,
       cashier_name: p.cashier_name,
@@ -115,7 +121,9 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
         { header: 'No. Tagihan (Invoice)', key: 'invoice_number', width: 22 },
         { header: 'Nama Pasien', key: 'patient_name', width: 26 },
         { header: 'No. RM', key: 'mr_number', width: 16 },
-        { header: 'Nominal Dibayar (Rp)', key: 'amount_paid', width: 20 },
+        { header: 'Nominal Diterima (Rp)', key: 'cash_received', width: 22 },
+        { header: 'Uang Kembalian (Rp)', key: 'change_amount', width: 20 },
+        { header: 'Total Tagihan Terbayar (Rp)', key: 'amount_paid', width: 24 },
         { header: 'Metode Pembayaran', key: 'payment_method', width: 18 },
         { header: 'Waktu Transaksi', key: 'paid_at', width: 20 },
         { header: 'Petugas Kasir', key: 'cashier_name', width: 20 },
@@ -129,19 +137,23 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
       'No. Pembayaran',
       'No. Invoice',
       'Pasien & No. RM',
-      'Nominal Dibayar',
+      'Nominal Diterima & Kembali',
       'Metode',
       'Waktu & Kasir',
     ];
 
-    const rows = filtered.map((p) => [
-      p.payment_number,
-      p.invoice_number,
-      `${p.patient_name}\n(${p.mr_number})`,
-      formatRupiah(p.amount_paid),
-      p.payment_method,
-      `${new Date(p.paid_at).toLocaleDateString('id-ID')}\n${p.cashier_name}`,
-    ]);
+    const rows = filtered.map((p) => {
+      const received = formatRupiah(p.cash_received || p.amount_paid || p.amount);
+      const changeStr = Number(p.change_amount) > 0 ? `\n(Kmb: ${formatRupiah(p.change_amount)})` : '';
+      return [
+        p.payment_number,
+        p.invoice_number,
+        `${p.patient_name}\n(${p.mr_number})`,
+        `${received}${changeStr}`,
+        p.payment_method,
+        `${new Date(p.paid_at).toLocaleDateString('id-ID')}\n${p.cashier_name}`,
+      ];
+    });
 
     exportTableToPdf(
       'LEMBAR REKAPITULASI TRANSAKSI KASIR RAWAT JALAN',
@@ -158,9 +170,9 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-teal-500/20 backdrop-blur-md rounded-2xl border border-teal-400/30 text-teal-300">
+          {/* <div className="p-3 bg-teal-500/20 backdrop-blur-md rounded-2xl border border-teal-400/30 text-teal-300">
             <CreditCard className="w-8 h-8" />
-          </div>
+          </div> */}
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
               Riwayat Pembayaran & Kuitansi Kasir
@@ -204,7 +216,7 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
       </div>
 
       {/* Critical Case 3 Callout */}
-      <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 text-xs text-teal-900">
+      {/* <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 text-xs text-teal-900">
         <ShieldCheck className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
         <div>
           <p className="font-semibold text-teal-950">
@@ -214,7 +226,7 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
             Setiap pembayaran diproses dengan header <code>X-Idempotency-Key</code> unik. Retry akibat gangguan jaringan kasir tidak akan pernah menyebabkan debit ganda pada saldo invoice pasien.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* Filters */}
       <Card className="p-4">
@@ -290,8 +302,20 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
                       <div className="font-bold text-slate-900">{p.patient_name}</div>
                       <div className="text-[11px] text-slate-500 font-mono">{p.mr_number}</div>
                     </td>
-                    <td className="py-3 px-4 font-mono font-bold text-emerald-600 text-sm">
-                      {formatRupiah(p.amount_paid)}
+                    <td className="py-3 px-4 font-mono">
+                      <div className="font-bold text-emerald-600 text-sm">
+                        {formatRupiah(p.cash_received || p.amount_paid || p.amount)}
+                      </div>
+                      {p.change_amount && Number(p.change_amount) > 0 ? (
+                        <div className="text-[11px] text-slate-500 font-sans mt-0.5 flex flex-col gap-0.5">
+                          <span className="text-teal-700 font-medium">
+                            Kembali: {formatRupiah(p.change_amount)}
+                          </span>
+                          <span className="text-slate-400">
+                            Tagihan: {formatRupiah(p.amount_paid || p.amount)}
+                          </span>
+                        </div>
+                      ) : null}
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
@@ -377,10 +401,16 @@ export const CashierPaymentsHistoryPage: React.FC = () => {
               </div>
 
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
-                <span className="text-slate-500 block text-[11px] uppercase">Jumlah Diterima</span>
+                <span className="text-slate-500 block text-[11px] uppercase">Nominal Diterima</span>
                 <span className="text-2xl font-bold text-emerald-600 font-mono">
-                  {formatRupiah(activeReceipt.amount_paid)}
+                  {formatRupiah(activeReceipt.cash_received || activeReceipt.amount_paid || activeReceipt.amount)}
                 </span>
+                {activeReceipt.change_amount && Number(activeReceipt.change_amount) > 0 ? (
+                  <div className="mt-2 text-xs font-mono text-slate-600 border-t border-slate-200 pt-2 flex justify-between px-2">
+                    <span>Kembalian: <b className="text-teal-700">{formatRupiah(activeReceipt.change_amount)}</b></span>
+                    <span>Tagihan: <b>{formatRupiah(activeReceipt.amount_paid || activeReceipt.amount)}</b></span>
+                  </div>
+                ) : null}
                 <span className="text-emerald-700 block text-[10px] mt-1 font-semibold">
                   STATUS: LUNAS (SETTLED)
                 </span>

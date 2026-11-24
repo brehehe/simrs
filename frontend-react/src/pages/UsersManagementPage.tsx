@@ -184,9 +184,9 @@ export const UsersManagementPage: React.FC = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-teal-500/20 backdrop-blur-md rounded-2xl border border-teal-400/30 text-teal-300">
+          {/* <div className="p-3 bg-teal-500/20 backdrop-blur-md rounded-2xl border border-teal-400/30 text-teal-300">
             <Users className="w-8 h-8" />
-          </div>
+          </div> */}
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
               Manajemen Pengguna & Otorisasi RBAC
@@ -220,7 +220,7 @@ export const UsersManagementPage: React.FC = () => {
       </div>
 
       {/* Info Callout */}
-      <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 text-xs text-teal-900">
+      {/* <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 text-xs text-teal-900">
         <Key className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
         <div>
           <p className="font-semibold text-teal-950">
@@ -230,7 +230,7 @@ export const UsersManagementPage: React.FC = () => {
             Seluruh akun terdaftar memiliki password default: <code className="bg-white px-1.5 py-0.5 rounded font-bold border border-teal-300">Password123!</code> untuk keperluan evaluasi teknis dan pengujian alur terintegrasi.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* Filters */}
       <Card className="p-4">
@@ -365,9 +365,8 @@ export const UsersManagementPage: React.FC = () => {
               placeholder="Contoh: dokter.budi"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase() })}
-              className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono ${
-                isEditing ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white border-slate-300'
-              }`}
+              className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono ${isEditing ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white border-slate-300'
+                }`}
             />
           </div>
 

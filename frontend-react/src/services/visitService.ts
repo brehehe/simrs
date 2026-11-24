@@ -19,6 +19,8 @@ export interface Visit {
   polyclinic_name: string;
   doctor_id: string;
   doctor_name: string;
+  invoice_status?: string | null;
+  outstanding_balance?: number | string | null;
   created_at: string;
 }
 

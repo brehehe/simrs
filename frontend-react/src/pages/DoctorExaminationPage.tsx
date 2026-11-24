@@ -57,8 +57,10 @@ export const DoctorExaminationPage: React.FC = () => {
 
   // SOAP State
   const [soapData, setSoapData] = useState({
+    chief_complaint: 'Pusing berputar dan tengkuk terasa berat sejak 3 hari yang lalu.',
+    anamnesis: 'Pasien mengeluhkan rasa pusing berputar yang memberat saat perubahan posisi kepala dan bangun pagi. Tengkuk terasa kaku, tidak ada demam, mual (-), muntah (-). Riwayat tekanan darah tinggi.',
     subjective: 'Pasien datang dengan keluhan pusing berputar dan tengkuk terasa berat sejak 3 hari yang lalu.',
-    objective: 'Keadaan umum: Compos mentis, tampak sakit sedang. Jantung/Paru dalam batas normal.',
+    objective: 'Keadaan umum: Compos mentis, tampak sakit sedang. Jantung: S1-S2 reguler, murmur (-). Paru: Vesikuler +/+, ronkhi (-), wheezing (-). Ekstremitas hangat, edema (-).',
     systolic_bp: 140,
     diastolic_bp: 90,
     pulse_rate: 82,
@@ -98,14 +100,14 @@ export const DoctorExaminationPage: React.FC = () => {
       try {
         setIsLoadingVisits(true);
         const [todayVisits, diagList, procList, medList, labList] = await Promise.all([
-          visitService.getVisits({ visit_date: new Date().toISOString().split('T')[0] }),
+          visitService.getVisits({ visit_date: new Date().toISOString().split('T')[0] }, 1, 100),
           clinicalService.getDiagnoses(),
           clinicalService.getProcedures(),
           clinicalService.getMedicines(),
           clinicalService.getLabTests(),
         ]);
 
-        setActiveVisits(todayVisits.items);
+        let visitsList = todayVisits.items;
         setDiagnoses(diagList);
         setProcedures(procList);
         setMedicines(medList);
@@ -123,11 +125,25 @@ export const DoctorExaminationPage: React.FC = () => {
         // Select visit from URL or first in examination/waiting
         let current: Visit | undefined;
         if (visitIdFromUrl) {
-          current = todayVisits.items.find(v => v.id === visitIdFromUrl);
+          current = visitsList.find(v => v.id === visitIdFromUrl);
+          if (!current) {
+            try {
+              const directVisit = await visitService.getVisitById(visitIdFromUrl);
+              if (directVisit) {
+                current = directVisit;
+                visitsList = [directVisit, ...visitsList.filter(v => v.id !== directVisit.id)];
+              }
+            } catch (e) {
+              console.warn('Visit ID tidak ditemukan:', e);
+            }
+          }
         }
-        if (!current) {
-          current = todayVisits.items.find(v => v.status === 'IN_EXAMINATION' || v.status === 'WAITING');
+        // Only fallback if NO visitIdFromUrl was requested
+        if (!current && !visitIdFromUrl) {
+          current = visitsList.find(v => v.status === 'IN_EXAMINATION' || v.status === 'WAITING') || visitsList[0];
         }
+
+        setActiveVisits(visitsList);
         if (current) {
           setSelectedVisit(current);
         }
@@ -139,6 +155,94 @@ export const DoctorExaminationPage: React.FC = () => {
     }
     loadData();
   }, [visitIdFromUrl]);
+
+  // Synchronize immediately whenever URL visit_id param changes
+  useEffect(() => {
+    if (!visitIdFromUrl) return;
+    if (selectedVisit && selectedVisit.id === visitIdFromUrl) return;
+
+    let isCancelled = false;
+    async function syncFromUrl() {
+      try {
+        const v = await visitService.getVisitById(visitIdFromUrl!);
+        if (!isCancelled && v) {
+          setSelectedVisit(v);
+          setActiveVisits(prev => {
+            if (!prev.some(x => x.id === v.id)) {
+              return [v, ...prev];
+            }
+            return prev;
+          });
+        }
+      } catch (err) {
+        console.warn('Gagal sinkronisasi data visit dari URL:', err);
+      }
+    }
+    syncFromUrl();
+    return () => { isCancelled = true; };
+  }, [visitIdFromUrl, selectedVisit?.id]);
+
+  // Load existing medical record if already recorded for this visit or reset for new patient
+  useEffect(() => {
+    if (!selectedVisit) return;
+    let isCancelled = false;
+    async function fetchExistingEMR() {
+      try {
+        const emr = await clinicalService.getMedicalRecordByVisit(selectedVisit!.id);
+        if (isCancelled) return;
+        if (emr) {
+          setSoapData({
+            chief_complaint: emr.chief_complaint || '',
+            anamnesis: emr.anamnesis || '',
+            subjective: emr.chief_complaint ? `${emr.chief_complaint}\n\n${emr.anamnesis || ''}` : '',
+            objective: emr.physical_examination || '',
+            systolic_bp: emr.systolic_bp ? Number(emr.systolic_bp) : 120,
+            diastolic_bp: emr.diastolic_bp ? Number(emr.diastolic_bp) : 80,
+            pulse_rate: emr.heart_rate ? Number(emr.heart_rate) : 80,
+            respiratory_rate: emr.respiratory_rate ? Number(emr.respiratory_rate) : 18,
+            body_temperature: emr.temperature ? Number(emr.temperature) : 36.5,
+            weight_kg: emr.weight ? Number(emr.weight) : 60,
+            height_cm: emr.height ? Number(emr.height) : 165,
+            assessment: emr.doctor_notes ? emr.doctor_notes.split('\nPlan:')[0].replace('Assessment: ', '') : '',
+            plan: emr.doctor_notes && emr.doctor_notes.includes('Plan:') ? emr.doctor_notes.split('Plan:')[1].trim() : '',
+          });
+          if (emr.diagnoses && emr.diagnoses.length > 0) {
+            const primary = emr.diagnoses.find((d: any) => d.diagnosis_type === 'PRIMARY');
+            if (primary) {
+              setPrimaryDiagnosisId(primary.diagnosis_id || primary.id);
+            }
+            const sec = emr.diagnoses
+              .filter((d: any) => d.diagnosis_type === 'SECONDARY')
+              .map((d: any) => d.diagnosis_id || d.id);
+            if (sec.length > 0) {
+              setSelectedSecondaryIds(sec);
+            }
+          }
+        } else {
+          // Initialize fresh SOAP for new patient visit
+          setSoapData({
+            chief_complaint: '',
+            anamnesis: '',
+            subjective: '',
+            objective: 'Keadaan umum: Compos mentis, tampak sakit sedang. Jantung/Paru dalam batas normal.',
+            systolic_bp: 120,
+            diastolic_bp: 80,
+            pulse_rate: 80,
+            respiratory_rate: 18,
+            body_temperature: 36.5,
+            weight_kg: 60,
+            height_cm: 165,
+            assessment: '',
+            plan: '',
+          });
+        }
+      } catch (err) {
+        // No existing record
+      }
+    }
+    fetchExistingEMR();
+    return () => { isCancelled = true; };
+  }, [selectedVisit?.id]);
 
   // BMI Calculation
   const heightM = (soapData.height_cm || 100) / 100;
@@ -194,8 +298,23 @@ export const DoctorExaminationPage: React.FC = () => {
       return;
     }
 
+    const chiefComplaint = soapData.chief_complaint?.trim();
+    if (!chiefComplaint) {
+      toast.error('Keluhan Utama wajib diisi.');
+      setActiveTab('soap');
+      return;
+    }
+
+    const anamnesis = soapData.anamnesis?.trim();
+    if (!anamnesis) {
+      toast.error('Anamnesis / Riwayat Penyakit Sekarang wajib diisi.');
+      setActiveTab('soap');
+      return;
+    }
+
     if (!primaryDiagnosisId) {
       toast.error('Diagnosis utama wajib dipilih.');
+      setActiveTab('diagnosis');
       return;
     }
 
@@ -205,19 +324,31 @@ export const DoctorExaminationPage: React.FC = () => {
       // 1. Simpan Rekam Medis SOAP & Diagnosis
       await clinicalService.saveMedicalRecord({
         visit_id: selectedVisit.id,
-        primary_diagnosis_id: primaryDiagnosisId,
-        secondary_diagnosis_ids: selectedSecondaryIds,
-        subjective: soapData.subjective,
+        chief_complaint: chiefComplaint,
+        anamnesis: anamnesis,
+        subjective: `${chiefComplaint}\n\nRiwayat Penyakit Sekarang:\n${anamnesis}`,
+        physical_examination: soapData.objective,
         objective: soapData.objective,
-        systolic_bp: soapData.systolic_bp,
-        diastolic_bp: soapData.diastolic_bp,
-        pulse_rate: soapData.pulse_rate,
-        respiratory_rate: soapData.respiratory_rate,
-        body_temperature: soapData.body_temperature,
-        weight_kg: soapData.weight_kg,
-        height_cm: soapData.height_cm,
+        systolic_bp: soapData.systolic_bp ? Number(soapData.systolic_bp) : null,
+        diastolic_bp: soapData.diastolic_bp ? Number(soapData.diastolic_bp) : null,
+        heart_rate: soapData.pulse_rate ? Number(soapData.pulse_rate) : null,
+        pulse_rate: soapData.pulse_rate ? Number(soapData.pulse_rate) : null,
+        respiratory_rate: soapData.respiratory_rate ? Number(soapData.respiratory_rate) : null,
+        temperature: soapData.body_temperature ? Number(soapData.body_temperature) : null,
+        body_temperature: soapData.body_temperature ? Number(soapData.body_temperature) : null,
+        weight: soapData.weight_kg ? Number(soapData.weight_kg) : null,
+        weight_kg: soapData.weight_kg ? Number(soapData.weight_kg) : null,
+        height: soapData.height_cm ? Number(soapData.height_cm) : null,
+        height_cm: soapData.height_cm ? Number(soapData.height_cm) : null,
+        doctor_notes: `Assessment: ${soapData.assessment || '-'}\nPlan: ${soapData.plan || '-'}`,
         assessment: soapData.assessment,
         plan: soapData.plan,
+        primary_diagnosis_id: primaryDiagnosisId,
+        secondary_diagnosis_ids: selectedSecondaryIds,
+        diagnoses: [
+          { diagnosis_id: primaryDiagnosisId, type: 'PRIMARY', notes: soapData.assessment || 'Diagnosis Utama' },
+          ...selectedSecondaryIds.map(id => ({ diagnosis_id: id, type: 'SECONDARY' }))
+        ],
       });
 
       // 2. Simpan Tindakan Medis
@@ -331,22 +462,25 @@ export const DoctorExaminationPage: React.FC = () => {
             )}
 
             {/* Change patient selector */}
-            <select
+            {/* <select
               aria-label="Pilih Pasien Lain"
-              className="bg-teal-800/80 border border-teal-600/50 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-400"
-              value={selectedVisit?.id || ''}
+              className="bg-teal-800/80 border border-teal-600/50 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-400 font-medium cursor-pointer"
+              value={selectedVisit?.id || visitIdFromUrl || ''}
               onChange={(e) => {
                 const found = activeVisits.find(v => v.id === e.target.value);
-                if (found) setSelectedVisit(found);
+                if (found) {
+                  setSelectedVisit(found);
+                  navigate(`/doctor/examination?visit_id=${found.id}`, { replace: true });
+                }
               }}
             >
-              <option value="" disabled>Pilih Pasien Lain...</option>
+              <option value="" disabled>Pilih Pasien Pemeriksaan...</option>
               {activeVisits.map(v => (
                 <option key={v.id} value={v.id} className="text-slate-900">
                   {v.queue_display} - {v.patient_name} ({v.mr_number})
                 </option>
               ))}
-            </select>
+            </select> */}
           </div>
         </div>
       </div>
@@ -366,8 +500,8 @@ export const DoctorExaminationPage: React.FC = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 py-3.5 px-4 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${isActive
-                  ? 'border-primary text-primary bg-teal-50/40'
-                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                ? 'border-primary text-primary bg-teal-50/40'
+                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                 }`}
             >
               <Icon className="w-4 h-4" />
@@ -453,17 +587,29 @@ export const DoctorExaminationPage: React.FC = () => {
 
           {/* SOAP Clinical Notes */}
           <div className="lg:col-span-2 space-y-4">
-            <Card title="Lembar SOAP Rawat Jalan" subtitle="Dokumentasi anamnesis medis terstruktur">
+            <Card title="Lembar SOAP Rawat Jalan" subtitle="Dokumentasi anamnesis medis terstruktur sesuai standar rekam medis">
               <div className="space-y-4 text-xs">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Subjective (S) — Keluhan Utama & Riwayat Penyakit Sekarang
+                    Keluhan Utama (Chief Complaint) <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    placeholder="Keluhan utama yang dirasakan pasien (misal: Pusing berputar dan tengkuk berat)..."
+                    value={soapData.chief_complaint}
+                    onChange={(e) => setSoapData({ ...soapData, chief_complaint: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Anamnesis / Riwayat Penyakit Sekarang (RPS) <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={3}
+                    placeholder="Rincian riwayat perjalanan penyakit, durasi, onset, faktor pemberat/meringankan..."
                     className="w-full p-3 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                    value={soapData.subjective}
-                    onChange={(e) => setSoapData({ ...soapData, subjective: e.target.value })}
+                    value={soapData.anamnesis}
+                    onChange={(e) => setSoapData({ ...soapData, anamnesis: e.target.value })}
                   />
                 </div>
 
@@ -473,6 +619,7 @@ export const DoctorExaminationPage: React.FC = () => {
                   </label>
                   <textarea
                     rows={3}
+                    placeholder="Temuan pemeriksaan fisik umum dan sistem organ..."
                     className="w-full p-3 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                     value={soapData.objective}
                     onChange={(e) => setSoapData({ ...soapData, objective: e.target.value })}
@@ -484,6 +631,7 @@ export const DoctorExaminationPage: React.FC = () => {
                     Assessment (A) — Kesimpulan Diagnosis Medis
                   </label>
                   <Input
+                    placeholder="Kesimpulan diagnosis kerja dokter..."
                     value={soapData.assessment}
                     onChange={(e) => setSoapData({ ...soapData, assessment: e.target.value })}
                   />
@@ -495,6 +643,7 @@ export const DoctorExaminationPage: React.FC = () => {
                   </label>
                   <textarea
                     rows={2}
+                    placeholder="Rencana terapi medis, obat, edukasi pola hidup..."
                     className="w-full p-3 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                     value={soapData.plan}
                     onChange={(e) => setSoapData({ ...soapData, plan: e.target.value })}
@@ -754,8 +903,8 @@ export const DoctorExaminationPage: React.FC = () => {
                     key={t.id}
                     onClick={() => handleToggleLabTest(t.id)}
                     className={`p-3.5 rounded-xl border cursor-pointer transition-all ${isSelected
-                        ? 'bg-teal-50/80 border-teal-500 ring-2 ring-teal-500/20 shadow-sm'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
+                      ? 'bg-teal-50/80 border-teal-500 ring-2 ring-teal-500/20 shadow-sm'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
                       }`}
                   >
                     <div className="flex items-center justify-between mb-1">

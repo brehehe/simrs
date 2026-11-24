@@ -130,9 +130,9 @@ export const PatientHistoryPage: React.FC = () => {
       try {
         // Fetch all visits
         const vRes = await apiClient.get('/visits', { params: { limit: 100 } });
-        const allVisits = vRes.data?.data?.items || [];
+        const allVisits: any[] = Array.isArray(vRes.data?.data) ? vRes.data.data : (vRes.data?.data?.items || []);
         const patientVisits = allVisits.filter(
-          (v: any) => v.patient_id === selectedPatientId || v.mr_number === currentP?.mr_number
+          (v: any) => v.patient_id === selectedPatientId || (currentP?.mr_number && v.mr_number === currentP.mr_number)
         );
 
         if (patientVisits.length > 0) {
@@ -164,6 +164,7 @@ export const PatientHistoryPage: React.FC = () => {
               visit_date: '2026-11-22',
               registration_number: 'REG-20261122-0003',
               polyclinic: 'Poliklinik Penyakit Dalam',
+              polyclinic_id: 'a0000000-0000-0000-0000-000000000001',
               doctor: 'dr. Budi Santoso, Sp.PD',
               subjective: 'Pasien mengeluh pusing berdenyut, leher tegang dan cepat lelah sejak 3 hari.',
               objective: 'TD: 140/90 mmHg, HR: 82x/m, RR: 20x/m, Suhu: 36.8C. Status gizi baik.',
@@ -179,6 +180,7 @@ export const PatientHistoryPage: React.FC = () => {
               visit_date: '2026-10-15',
               registration_number: 'REG-20261015-0012',
               polyclinic: 'Poliklinik Penyakit Dalam',
+              polyclinic_id: 'a0000000-0000-0000-0000-000000000001',
               doctor: 'dr. Budi Santoso, Sp.PD',
               subjective: 'Kontrol rutin tekanan darah dan evaluasi kepatuhan terapi obat.',
               objective: 'TD: 135/85 mmHg, HR: 78x/m, BB: 68 kg.',
@@ -205,8 +207,20 @@ export const PatientHistoryPage: React.FC = () => {
   const filteredHistory = useMemo(() => {
     return historyItems.filter((item) => {
       // 1. Polyclinic Filter
-      if (selectedPoly !== 'ALL' && item.polyclinic_id && item.polyclinic_id !== selectedPoly) {
-        if (!item.polyclinic.toLowerCase().includes(selectedPoly.toLowerCase())) return false;
+      if (selectedPoly !== 'ALL') {
+        const polyObj = polyclinics.find((p) => p.id === selectedPoly);
+        const targetName = (polyObj?.name || '').toLowerCase();
+        const targetCode = (polyObj?.code || '').toLowerCase();
+        const itemPolyId = item.polyclinic_id || '';
+        const itemPolyName = (item.polyclinic || '').toLowerCase();
+
+        const matchId = itemPolyId && itemPolyId === selectedPoly;
+        const matchName = targetName && itemPolyName.includes(targetName);
+        const matchCode = targetCode && itemPolyName.includes(targetCode);
+
+        if (!matchId && !matchName && !matchCode) {
+          return false;
+        }
       }
 
       // 2. Period Filter
@@ -242,7 +256,7 @@ export const PatientHistoryPage: React.FC = () => {
 
       return true;
     });
-  }, [historyItems, selectedPoly, periodFilter, searchQuery]);
+  }, [historyItems, selectedPoly, periodFilter, searchQuery, polyclinics]);
 
   // Export Handlers
   const handleExportExcel = () => {
